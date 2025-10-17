@@ -2655,6 +2655,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "egui",
+ "once_cell",
  "rdev",
 ]
 
