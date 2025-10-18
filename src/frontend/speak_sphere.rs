@@ -1,6 +1,8 @@
-#[derive(Default)]
+use crate::frontend::vocabulary::vocabulary_app::VocabularyApp;
+
 pub(crate) struct SpeakSphere {
     pub(crate) current_screen: Screen,
+    vocabulary_app: VocabularyApp,
 }
 
 #[derive(Default, PartialEq)]
@@ -9,6 +11,15 @@ pub(crate) enum Screen {
     Main,
     Vocabulary,
     Audiobook,
+}
+
+impl SpeakSphere {
+    pub fn new() -> Self {
+        Self {
+            current_screen: Screen::Main,
+            vocabulary_app: VocabularyApp::default(),
+        }
+    }
 }
 
 impl eframe::App for SpeakSphere {
@@ -78,18 +89,10 @@ impl SpeakSphere {
 
     fn show_vocabulary_screen(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("📚 背单词模块");
-            ui.add_space(20.0);
+            let mut back_to_main = false;
+            self.vocabulary_app.show(ui, &mut back_to_main);
 
-            ui.label("这里是背单词功能区域");
-            ui.label("将集成不背单词的核心功能：");
-            ui.label("• 单词学习与复习");
-            ui.label("• 智能记忆曲线");
-            ui.label("• 发音练习");
-            ui.label("• 例句学习");
-
-            ui.add_space(20.0);
-            if ui.button("🔙 返回主菜单").clicked() {
+            if back_to_main {
                 self.current_screen = Screen::Main;
             }
         });
