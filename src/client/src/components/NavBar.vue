@@ -27,14 +27,19 @@
     </el-sub-menu>
     <el-sub-menu index="3">
       <template #title>工具</template>
-      <el-menu-item index="3-1" @click="handleRecordAudio">
-        口语录音
+      <router-link :to="{ name: 'record' }">
+        <el-menu-item index="3-1">
+          口语录音
+        </el-menu-item>
+      </router-link>
+      <router-link :to=" {name: 'query'} ">
+        <el-menu-item index="3-2">
+          <template #title>查询单词</template>
+        </el-menu-item>
+      </router-link>
+      <el-menu-item index="3-3" @click="handleMarkdownLiveRendering">
+        在线Markdown渲染
       </el-menu-item>
-        <router-link :to=" {name: 'query'} ">
-          <el-menu-item index="3-2">
-            <template #title>查询单词</template>
-          </el-menu-item>
-        </router-link>
     </el-sub-menu>
 
     <el-menu-item index="4" @click="handleOpenHelpPage">
@@ -58,12 +63,12 @@ if (store.state.user.isAuthenticated) {
   navbarActiveIndex.value = '1'
 }
 
-const handleRecordAudio = () => {
-  window.open('https://jcglqmoyx.github.io/audio-recorder', '_blank');
-}
-
 const handleOpenHelpPage = () => {
   window.open('https://www.zhihu.com/question/309418216/answer/1965169328514109501', '_blank');
+}
+
+const handleMarkdownLiveRendering = () => {
+  window.open('https://markdownlivepreview.com/', '_blank');
 }
 </script>
 
