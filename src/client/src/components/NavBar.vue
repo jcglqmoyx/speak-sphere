@@ -30,6 +30,11 @@
       <el-menu-item index="3-1" @click="handleRecordAudio">
         口语录音
       </el-menu-item>
+        <router-link :to=" {name: 'query'} ">
+          <el-menu-item index="3-2">
+            <template #title>查询单词</template>
+          </el-menu-item>
+        </router-link>
     </el-sub-menu>
 
     <el-menu-item index="4" @click="handleOpenHelpPage">

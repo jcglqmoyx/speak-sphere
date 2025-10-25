@@ -1,9 +1,15 @@
 import {createRouter, createWebHashHistory} from 'vue-router'
 import wordRoutes from "@/router/word";
 import authRoutes from "@/router/auth";
-import SettingRoutes from "@/router/setting";
+import settingRoutes from "@/router/setting";
+import QueryView from "@/views/query/QueryView.vue";
 
 const routes = [
+    {
+        path: '/query',
+        name: 'query',
+        component: QueryView,
+    },
     {
         path: '/',
         name: 'home',
@@ -25,7 +31,7 @@ const router = createRouter({
     routes: [
         ...wordRoutes,
         ...authRoutes,
-        ...SettingRoutes,
+        ...settingRoutes,
         ...routes,
     ]
 })
