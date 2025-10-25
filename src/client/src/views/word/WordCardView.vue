@@ -349,67 +349,135 @@ el-icon {
   height: 100%;
   overflow-y: auto;
   padding: 10px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--el-border-color);
   border-radius: 4px;
-  background-color: #fafafa;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .markdown-preview :deep(h1) {
-  color: #303133;
-  border-bottom: 1px solid #e4e7ed;
+  color: var(--el-text-color-primary);
+  border-bottom: 1px solid var(--el-border-color);
   padding-bottom: 5px;
+  margin-top: 0;
 }
 
 .markdown-preview :deep(h2) {
-  color: #409eff;
-  border-bottom: 1px solid #e4e7ed;
+  color: var(--el-text-color-primary);
+  border-bottom: 1px solid var(--el-border-color);
   padding-bottom: 5px;
 }
 
+.markdown-preview :deep(h3) {
+  color: var(--el-text-color-primary);
+}
+
+.markdown-preview :deep(h4) {
+  color: var(--el-text-color-primary);
+}
+
+.markdown-preview :deep(h5) {
+  color: var(--el-text-color-primary);
+}
+
+.markdown-preview :deep(h6) {
+  color: var(--el-text-color-primary);
+}
+
+.markdown-preview :deep(p) {
+  color: var(--el-text-color-primary);
+  line-height: 1.6;
+}
+
 .markdown-preview :deep(code) {
-  background-color: #f0f0f0;
+  background-color: var(--el-fill-color-light);
   padding: 2px 4px;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--el-text-color-primary);
 }
 
 .markdown-preview :deep(pre) {
-  background-color: #f5f5f5;
+  background-color: var(--el-fill-color-light);
   padding: 10px;
   border-radius: 4px;
   overflow-x: auto;
+  border: 1px solid var(--el-border-color);
+}
+
+.markdown-preview :deep(pre code) {
+  background-color: transparent;
+  color: var(--el-text-color-primary);
 }
 
 .markdown-preview :deep(blockquote) {
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--el-color-primary);
   padding-left: 10px;
   margin-left: 0;
-  color: #666;
-  background-color: #f8f9fa;
+  color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color-lighter);
 }
 
 .markdown-preview :deep(ul), .markdown-preview :deep(ol) {
   padding-left: 20px;
+  color: var(--el-text-color-primary);
+}
+
+.markdown-preview :deep(li) {
+  margin-bottom: 4px;
+  color: var(--el-text-color-primary);
 }
 
 .markdown-preview :deep(table) {
   width: 100%;
   border-collapse: collapse;
   margin: 10px 0;
+  border: 1px solid var(--el-border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .markdown-preview :deep(th), .markdown-preview :deep(td) {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--el-border-color);
   padding: 8px;
   text-align: left;
 }
 
 .markdown-preview :deep(th) {
-  background-color: #f5f7fa;
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+}
+
+.markdown-preview :deep(td) {
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color);
+}
+
+.markdown-preview :deep(tr:nth-child(even)) {
+  background-color: var(--el-fill-color-lighter);
+}
+
+.markdown-preview :deep(a) {
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+
+.markdown-preview :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.markdown-preview :deep(strong) {
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+}
+
+.markdown-preview :deep(em) {
+  color: var(--el-text-color-primary);
+  font-style: italic;
 }
 
 .empty-note {
-  color: #909399;
+  color: var(--el-text-color-placeholder);
   font-style: italic;
   text-align: center;
   padding: 20px;
