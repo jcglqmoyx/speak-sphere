@@ -12,7 +12,7 @@
           </el-button>
         </el-tooltip>
         &nbsp;
-        <el-tooltip content="编辑笔记" placement="top">
+        <el-tooltip content="编辑笔记 (支持Markdown语法)" placement="top">
           <el-button v-if="showHeader" class="centered-button" circle @click="showEditNoteDrawerButtonClicked">
             <el-icon>
               <EditPen/>
@@ -67,27 +67,40 @@
     </el-drawer>
   </ContentBase>
 
-  <el-drawer v-model="showEditNoteDrawer" title="笔记" :with-header="true">
-    <el-input
-        type="textarea"
-        placeholder="添加笔记"
-        v-model="currentWordNote"
-        :rows="30"
-        maxlength="1000"
-        show-word-limit
-    ></el-input>
-    <el-divider/>
-    <el-button type="primary" @click="updateNote">确定</el-button>
+  <el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法)" :with-header="true" size="50%">
+    <div class="note-editor">
+      <el-tabs v-model="activeTab" type="border-card">
+        <el-tab-pane label="编辑" name="edit">
+          <el-input
+              type="textarea"
+              placeholder="添加笔记 (支持Markdown语法)"
+              v-model="currentWordNote"
+              :rows="20"
+              maxlength="1000"
+              show-word-limit
+          ></el-input>
+        </el-tab-pane>
+        <el-tab-pane label="预览" name="preview">
+          <div class="markdown-preview" v-html="renderedMarkdown"></div>
+        </el-tab-pane>
+      </el-tabs>
+      <el-divider/>
+      <div class="editor-actions">
+        <el-button type="primary" @click="updateNote">保存</el-button>
+        <el-button @click="showEditNoteDrawer = false">取消</el-button>
+      </div>
+    </div>
   </el-drawer>
 </template>
 
 <script setup>
-import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTooltip} from 'element-plus';
+import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTooltip, ElTabs, ElTabPane} from 'element-plus';
 import {Delete, EditPen, Search} from "@element-plus/icons-vue";
 import ContentBase from "@/components/ContentBase.vue";
+import MarkdownIt from 'markdown-it';
 
 import {useStore} from "vuex";
-import {defineProps, onMounted, reactive, ref} from "vue";
+import {defineProps, onMounted, reactive, ref, computed} from "vue";
 
 import {getUserProfile} from "@/assets/js/module/user/query";
 import {getDictionaryList} from "@/assets/js/module/dictionary/query";
@@ -110,10 +123,28 @@ const dataStatus = ref(2);
 const showHeader = ref(true);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
+const activeTab = ref('edit');
+
+// 初始化markdown渲染器
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true
+});
+
 const showEditNoteDrawerButtonClicked = () => {
   setCurrentWordNote();
+  activeTab.value = 'edit';
   showEditNoteDrawer.value = !showEditNoteDrawer.value;
 }
+
+// 计算属性：渲染markdown内容
+const renderedMarkdown = computed(() => {
+  if (!currentWordNote.value) {
+    return '<p class="empty-note">暂无笔记内容</p>';
+  }
+  return md.render(currentWordNote.value);
+});
 
 let dictionaries = reactive([]);
 
@@ -295,5 +326,99 @@ el-icon {
   justify-content: center;
   height: 5vh;
   width: 5vh;
+}
+
+.note-editor {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.el-tabs__content) {
+  flex: 1;
+  overflow-y: auto;
+}
+
+:deep(.el-textarea__inner) {
+  height: 100%;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+}
+
+.markdown-preview {
+  height: 100%;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.markdown-preview :deep(h1) {
+  color: #303133;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 5px;
+}
+
+.markdown-preview :deep(h2) {
+  color: #409eff;
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 5px;
+}
+
+.markdown-preview :deep(code) {
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.markdown-preview :deep(pre) {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.markdown-preview :deep(blockquote) {
+  border-left: 4px solid #409eff;
+  padding-left: 10px;
+  margin-left: 0;
+  color: #666;
+  background-color: #f8f9fa;
+}
+
+.markdown-preview :deep(ul), .markdown-preview :deep(ol) {
+  padding-left: 20px;
+}
+
+.markdown-preview :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.markdown-preview :deep(th), .markdown-preview :deep(td) {
+  border: 1px solid #e4e7ed;
+  padding: 8px;
+  text-align: left;
+}
+
+.markdown-preview :deep(th) {
+  background-color: #f5f7fa;
+}
+
+.empty-note {
+  color: #909399;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
 }
 </style>
