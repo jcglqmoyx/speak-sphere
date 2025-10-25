@@ -1,0 +1,99 @@
+# 应用运行模式
+# debug: 开发模式，会输出更详细的日志信息
+# release: 生产模式，日志输出相对简洁
+mode:
+  release
+
+# 服务器配置
+server:
+  # 服务监听的端口号
+  port: 8080
+
+# JWT认证配置
+jwt:
+  # JWT令牌的密钥，生产环境建议使用更复杂的密钥
+  secret: speak-sphere-jwt-secret-key
+
+# 日志配置
+log:
+  # 日志文件路径
+  path: app.log
+  # 日志文件最大保留天数
+  max_age: 30
+  # 单个日志文件最大大小（MB）
+  max_size: 10
+  # 最大保留的日志文件备份数量
+  max_backups: 3
+  # 是否压缩旧的日志文件
+  compress: true
+  # 是否使用本地时间
+  local_time: true
+
+# 数据库（SQLite）配置
+sqlite:
+  # SQLite数据库文件路径
+  path: app.db
+  # 数据库最大打开连接数
+  max_open_conns: 30
+  # 数据库最大空闲连接数
+  max_idle_conns: 10
+  # 连接最大生存时间（小时）
+  conn_max_lifetime: 1
+
+# 书籍相关配置
+book:
+  # 书籍标题最大长度
+  max_title_length: 32
+  # 书籍分类名称最大长度
+  max_category_length: 32
+  # 书籍文件最大大小（字节）
+  max_file_size: 10485760
+  # 书籍文件上传路径
+  upload_path: ./uploads/book
+
+# 词条相关配置
+entry:
+  # 单词最大长度
+  max_word_length: 128
+  # 释义最大长度
+  max_meaning_length: 20480
+  # 笔记最大长度
+  max_note_length: 20480
+  # 默认复习日期（格式：YYYYMMDD，99991231 表示未设置）
+  default_date_to_review: 99991231
+
+# 词典配置
+dictionary:
+  # 词典标题最大长度
+  max_title_length: 128
+  # 链接前缀最大长度
+  max_prefix_length: 256
+  # 链接后缀最大长度
+  max_suffix_length: 256
+  # 预定义的在线词典列表
+  dictionaries:
+    # Google搜索
+    - title: Google
+      prefix: https://www.google.com/search?q=
+      suffix:
+    # YouGlish发音查询
+    - title: YouGlish
+      prefix: https://youglish.com/pronounce/
+      suffix: /english/us?
+    # 韦氏词典
+    - title: Merriam-Webster Dictionary
+      prefix: https://www.merriam-webster.com/dictionary/
+      suffix:
+    # 有道词典
+    - title: 有道词典
+      prefix: https://youdao.com/result?word=
+      suffix: "&lang=en"
+    # YouTube搜索
+    - title: Youtube
+      prefix: https://www.youtube.com/results?search_query=
+      suffix:
+
+# 机器配置（预留用于扩展功能）
+machine:
+  # 激活码
+  activation_code: 1
