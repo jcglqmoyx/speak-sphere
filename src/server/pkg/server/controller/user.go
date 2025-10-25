@@ -1,13 +1,15 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
-	"strconv"
 	"speak-sphere/pkg/server/conf"
 	"speak-sphere/pkg/server/dao"
 	"speak-sphere/pkg/server/model"
 	"speak-sphere/pkg/server/util"
+	"strconv"
+	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Register(c *gin.Context) {
@@ -99,23 +101,23 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		util.JsonHttpResponse(c, 2, err.Error(), nil)
 		return
-	} 
-	
+	}
+
 	currentUser, found := dao.FindUserByID(userID)
 	if !found {
 		util.JsonHttpResponse(c, 1, "用户不存在, 无法更新", nil)
 		return
 	}
-	
+
 	var updateData map[string]interface{}
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		util.JsonHttpResponse(c, 1, "参数不合法: " + err.Error(), nil)
+		util.JsonHttpResponse(c, 1, "参数不合法: "+err.Error(), nil)
 		return
 	}
-	
+
 	// 记录接收到的数据
 	log.Printf("收到用户更新请求: userID=%d, data=%+v", userID, updateData)
-	
+
 	// 检查邮箱是否被其他用户占用
 	if email, ok := updateData["email"].(string); ok && email != "" && email != currentUser.Email {
 		if existingUser, found := dao.FindUserByEmail(email); found && existingUser.ID != userID {
@@ -177,10 +179,41 @@ func UpdateUser(c *gin.Context) {
 		}
 	}
 
+	// Validate LLM parameters if provided
+	if llmServiceProvider, exists := updateData["llm_service_provider"]; exists {
+		if provider, ok := llmServiceProvider.(string); ok {
+			// Basic URL validation
+			if len(provider) < 8 || len(provider) > 255 {
+				util.JsonHttpResponse(c, 1, "LLM服务提供商的URL长度应在8-255字符之间", nil)
+				return
+			}
+			if strings.Contains(provider, " ") {
+				util.JsonHttpResponse(c, 1, "LLM服务提供商URL不能包含空格", nil)
+				return
+			}
+		}
+	}
+
+	if llmToken, exists := updateData["llm_token"]; exists {
+		if token, ok := llmToken.(string); ok && len(token) < 10 {
+			util.JsonHttpResponse(c, 1, "LLM token长度过短", nil)
+			return
+		}
+	}
+
+	if llmModel, exists := updateData["llm_model"]; exists {
+		if mdl, ok := llmModel.(string); ok {
+			if len(mdl) < 3 || len(mdl) > 50 {
+				util.JsonHttpResponse(c, 1, "LLM model名称长度应在3-50字符之间", nil)
+				return
+			}
+		}
+	}
+
 	// 只更新需要的字段，避免清空密码等敏感信息
 	updateData["id"] = userID
 	dao.UpdateUserWithMap(updateData)
-	
+
 	// 获取更新后的用户信息
 	updatedUser, _ := dao.FindUserByID(userID)
 	util.JsonHttpResponse(c, 0, "success", updatedUser)
@@ -202,6 +235,9 @@ func GetUserProfile(c *gin.Context) {
 			DailyCount:             user.DailyCount,
 			TimesCountedAsKnown:    user.TimesCountedAsKnown,
 			ReviewFrequencyFormula: user.ReviewFrequencyFormula,
+			LLMServiceProvider:     user.LLMServiceProvider,
+			LLMToken:               user.LLMToken,
+			LLMModel:               user.LLMModel,
 		}
 		util.JsonHttpResponse(c, 0, "success", userInfo)
 	} else {

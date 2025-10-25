@@ -15,13 +15,10 @@ func ParseReviewFrequencyFormula(s string) ([]int, bool) {
 			num = num*10 + int(s[j]-'0')
 			j++
 		}
-		if num <= 0 || num >= 365 {
+		if num <= 0 {
 			return nil, false
 		}
 		arr = append(arr, num)
-		if len(arr) > 30 {
-			return nil, false
-		}
 		j++
 		i = j - 1
 	}

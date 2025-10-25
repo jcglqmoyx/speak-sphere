@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Book struct {
@@ -55,7 +56,10 @@ type User struct {
 	CurrentBookID          int            `gorm:"current_book_id" form:"current_book_id" json:"current_book_id"`
 	DailyCount             int            `gorm:"daily_count;default:10" form:"daily_count" json:"daily_count"`
 	TimesCountedAsKnown    int            `gorm:"times_counted_as_known;default:2" form:"times_counted_as_known" json:"times_counted_as_known"`
-	ReviewFrequencyFormula string         `gorm:"column:review_frequency_formula;default:'1_3_7_15_30_90_180_'" form:"review_frequency_formula" json:"review_frequency_formula"`
+	ReviewFrequencyFormula string         `gorm:"column:review_frequency_formula;default:'2_4_8_16_32_64_128_256_512_'" form:"review_frequency_formula" json:"review_frequency_formula"`
+	LLMServiceProvider     string         `gorm:"column:llm_service_provider" form:"llm_service_provider" json:"llm_service_provider,omitempty"`
+	LLMToken               string         `gorm:"column:llm_token" form:"llm_token" json:"llm_token,omitempty"`
+	LLMModel               string         `gorm:"column:llm_model" form:"llm_model" json:"llm_model,omitempty"`
 	CreatedAt              time.Time      `json:"created_at" form:"created_at"`
 	UpdatedAt              time.Time      `json:"updated_at" form:"updated_at"`
 	DeletedAt              gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`

@@ -1,9 +1,10 @@
 package conf
 
 import (
+	"time"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"time"
 
 	"speak-sphere/pkg/server/model"
 )

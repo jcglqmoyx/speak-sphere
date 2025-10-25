@@ -18,6 +18,9 @@
               <p>每日新单词数: <b>{{ user.dailyCount }}</b></p>
               <p>复习频率公式: <b>{{ user.reviewFrequencyFormula }}</b></p>
               <p>点击几次“认识”算学会: <b>{{ user.timesCountedAsKnown }}</b></p>
+              <p>LLM 链接: <b>{{ user.llmServiceProvider }}</b></p>
+              <p>LLM token: <b>{{ user.llmToken }}</b></p>
+              <p>LLM 模型: <b>{{ user.llmModel }}</b></p>
               <p>
                 主题:
                 <el-switch
@@ -69,6 +72,15 @@
         </el-form-item>
         <el-form-item label="点击几次“认识”算学会">
           <el-input-number v-model="user.timesCountedAsKnown" :min="1" :max="1000"/>
+        </el-form-item>
+        <el-form-item label="LLM 链接">
+          <el-input v-model="user.llmServiceProvider"/>
+        </el-form-item>
+        <el-form-item label="LLM token">
+          <el-input v-model="user.llmToken"/>
+        </el-form-item>
+        <el-form-item label="LLM 模型">
+          <el-input v-model="user.llmModel"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -134,6 +146,9 @@ let user = reactive(
       dailyCount: 0,
       timesCountedAsKnown: 0,
       reviewFrequencyFormula: "",
+      llmServiceProvider: "",
+      llmToken: "",
+      llmModel: "",
     }
 )
 const store = useStore();
@@ -156,6 +171,9 @@ onMounted(
       user.dailyCount = getUserProfileResponse.daily_count;
       user.timesCountedAsKnown = getUserProfileResponse.times_counted_as_known;
       user.reviewFrequencyFormula = getUserProfileResponse.review_frequency_formula;
+      user.llmServiceProvider = getUserProfileResponse.llm_service_provider;
+      user.llmToken = getUserProfileResponse.llm_token;
+      user.llmModel = getUserProfileResponse.llm_model;
 
       const getBookListResponse = await getBookList(100000000, 1);
       checkResponse(getBookListResponse);
@@ -192,8 +210,11 @@ const confirmUpdate = async () => {
       user.dailyCount,
       user.timesCountedAsKnown,
       user.reviewFrequencyFormula,
+      user.llmServiceProvider,
+      user.llmToken,
+      user.llmModel,
   )
-  
+
   if (updateUserResponse && updateUserResponse.code === 0) {
     checkResponse(updateUserResponse);
     dataLoaded.value = true;
@@ -212,7 +233,7 @@ const confirmUpdate = async () => {
   }
 }
 
-const { isDark } = getThemeInstance();
+const {isDark} = getThemeInstance();
 </script>
 
 <style scoped>

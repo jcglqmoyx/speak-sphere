@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path/filepath"
 	"speak-sphere/pkg/server/conf"
 	"speak-sphere/pkg/server/router"
+
+	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v3"
 )
 
 func readConfig(cfg *conf.Config, path string) error {

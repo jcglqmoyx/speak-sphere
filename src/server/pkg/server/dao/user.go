@@ -26,18 +26,13 @@ func DeleteUserByID(id int) {
 	db.Delete(&model.User{}, id)
 }
 
-func UpdateUser(user *model.User) {
-	db := GetDB()
-	db.Model(&model.User{}).Where("id = ?", user.ID).Updates(user)
-}
-
 func UpdateUserWithMap(updateData map[string]interface{}) {
 	db := GetDB()
 	// 移除不应通过API更新的字段
 	delete(updateData, "password")
 	delete(updateData, "password_salt")
 	delete(updateData, "level")
-	
+
 	db.Model(&model.User{}).Where("id = ?", updateData["id"]).Updates(updateData)
 }
 
