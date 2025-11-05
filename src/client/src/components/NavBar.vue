@@ -68,7 +68,7 @@ const handleOpenHelpPage = () => {
 }
 
 const handleMarkdownLiveRendering = () => {
-  window.open('https://markdownlivepreview.com/', '_blank');
+  window.open('https://stackedit.io/app#', '_blank');
 }
 </script>
 
