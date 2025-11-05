@@ -61,14 +61,14 @@ const handleLearn = () => {
 
 .image-wrapper {
   position: relative;
-  padding-top: 160%;
+  padding-top: 150%;  /* 固定比例，在手机上不会太矮，在电脑上也不会太高 */
   background-size: cover;
   background-position: center;
 }
 
 .buttons {
   position: absolute;
-  bottom: 10px;
+  bottom: 40px;  /* 合适的高度位置 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;

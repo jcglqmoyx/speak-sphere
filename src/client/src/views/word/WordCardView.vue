@@ -37,18 +37,10 @@
       </div>
 
       <div class="footer">
-        <el-tooltip content="认识 (快捷键: J)" placement="top">
-          <el-button v-if="status === 1" @click="handleFamiliar">认识</el-button>
-        </el-tooltip>
-        <el-tooltip content="不认识 (快捷键: K)" placement="top">
-          <el-button v-if="status === 1" @click="handleUnfamiliar">不认识</el-button>
-        </el-tooltip>
-        <el-tooltip content="记错了 (快捷键: U)" placement="top">
-          <el-button v-if="status === 2" @click="gotItWrong">记错了</el-button>
-        </el-tooltip>
-        <el-tooltip content="下一词 (快捷键: N)" placement="top">
-          <el-button v-if="status === 2 || status === 3" @click="showNextWord">下一词</el-button>
-        </el-tooltip>
+        <el-button v-if="status === 1" @click="handleFamiliar">认识(J)</el-button>
+        <el-button v-if="status === 1" @click="handleUnfamiliar">不认识(K)</el-button>
+        <el-button v-if="status === 2" @click="gotItWrong">记错了(U)</el-button>
+        <el-button v-if="status === 2 || status === 3" @click="showNextWord">下一词(N)</el-button>
       </div>
     </div>
     <div v-else-if="dataStatus === 2" class="word-card">
@@ -69,13 +61,13 @@
     </el-drawer>
   </ContentBase>
 
-<el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法，包括数学公式和表格)" :with-header="true" size="50%">
+  <el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法)" :with-header="true" size="50%">
     <div class="note-editor">
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="编辑" name="edit">
           <el-input
               type="textarea"
-              placeholder="添加笔记 (支持Markdown语法，包括数学公式: $E=mc^2$ 和表格)"
+              placeholder="添加笔记 (支持Markdown语法)"
               v-model="currentWordNote"
               :rows="20"
               maxlength="1000"
@@ -96,13 +88,13 @@
 </template>
 
 <script setup>
-import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTooltip, ElTabs, ElTabPane} from 'element-plus';
+import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTabPane, ElTabs, ElTooltip} from 'element-plus';
 import {Delete, EditPen, Search} from "@element-plus/icons-vue";
 import ContentBase from "@/components/ContentBase.vue";
 import MarkdownIt from 'markdown-it';
 
 import {useStore} from "vuex";
-import {defineProps, onMounted, reactive, ref, computed} from "vue";
+import {computed, defineProps, onMounted, reactive, ref} from "vue";
 
 import {getUserProfile} from "@/assets/js/module/user/query";
 import {getDictionaryList} from "@/assets/js/module/dictionary/query";
@@ -113,6 +105,15 @@ import {
   updateEntry,
   updateEntryStudyCount
 } from "@/assets/js/module/entry/update";
+// 初始化markdown渲染器
+import MarkdownItMark from 'markdown-it-mark';
+import MarkdownItFootnote from 'markdown-it-footnote';
+import MarkdownItAbbr from 'markdown-it-abbr';
+import MarkdownItIns from 'markdown-it-ins';
+import MarkdownItSub from 'markdown-it-sub';
+import MarkdownItSup from 'markdown-it-sup';
+import MarkdownItTexmath from 'markdown-it-texmath';
+import katex from 'katex';
 
 const props = defineProps(["type"]);
 /*
@@ -127,16 +128,6 @@ const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const activeTab = ref('edit');
 
-// 初始化markdown渲染器 - 支持数学公式和扩展语法
-import MarkdownItMark from 'markdown-it-mark';
-import MarkdownItFootnote from 'markdown-it-footnote';
-import MarkdownItAbbr from 'markdown-it-abbr';
-import MarkdownItIns from 'markdown-it-ins';
-import MarkdownItSub from 'markdown-it-sub';
-import MarkdownItSup from 'markdown-it-sup';
-import MarkdownItTexmath from 'markdown-it-texmath';
-import katex from 'katex';
-
 const md = new MarkdownIt({
   html: true,
   linkify: true,
@@ -144,21 +135,21 @@ const md = new MarkdownIt({
   // 启用表格支持
   tables: true
 })
-.use(MarkdownItMark) // 支持标记文本 ==标记==
-.use(MarkdownItFootnote) // 支持脚注
-.use(MarkdownItAbbr) // 支持缩写
-.use(MarkdownItIns) // 支持下划线 ++下划线++
-.use(MarkdownItSub) // 支持下标 H~2~O
-.use(MarkdownItSup) // 支持上标 x^2^
-.use(MarkdownItTexmath, {
-  engine: katex,
-  delimiters: 'dollars',
-  katexOptions: {
-    macros: {
-      "\\RR": "\\mathbb{R}"
-    }
-  }
-});
+    .use(MarkdownItMark) // 支持标记文本 ==标记==
+    .use(MarkdownItFootnote) // 支持脚注
+    .use(MarkdownItAbbr) // 支持缩写
+    .use(MarkdownItIns) // 支持下划线 ++下划线++
+    .use(MarkdownItSub) // 支持下标 H~2~O
+    .use(MarkdownItSup) // 支持上标 x^2^
+    .use(MarkdownItTexmath, {
+      engine: katex,
+      delimiters: 'dollars',
+      katexOptions: {
+        macros: {
+          "\\RR": "\\mathbb{R}"
+        }
+      }
+    });
 
 const showEditNoteDrawerButtonClicked = () => {
   setCurrentWordNote();
