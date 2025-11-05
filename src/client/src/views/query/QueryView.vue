@@ -31,11 +31,6 @@
                     <el-icon><Search /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="添加笔记 (Markdown支持)" placement="top">
-                  <el-button circle @click="showEditNoteDrawer = true">
-                    <el-icon><EditPen /></el-icon>
-                  </el-button>
-                </el-tooltip>
               </div>
             </div>
           </template>
@@ -104,41 +99,14 @@
         </span>
       </template>
     </el-dialog>
-
-    <!-- 笔记编辑抽屉 -->
-    <el-drawer v-model="showEditNoteDrawer" title="笔记 (Markdown支持)" :with-header="true" size="50%">
-      <div class="note-editor">
-        <el-tabs v-model="activeTab" type="border-card">
-          <el-tab-pane label="编辑" name="edit">
-            <el-input
-              type="textarea"
-              placeholder="添加笔记 (支持Markdown语法)"
-              v-model="currentWordNote"
-              :rows="20"
-              maxlength="1000"
-              show-word-limit
-            ></el-input>
-          </el-tab-pane>
-          <el-tab-pane label="预览" name="preview">
-            <div class="markdown-preview" v-html="renderedMarkdown"></div>
-          </el-tab-pane>
-        </el-tabs>
-        <el-divider/>
-        <div class="editor-actions">
-          <el-button type="primary" @click="saveNote">保存</el-button>
-          <el-button @click="showEditNoteDrawer = false">取消</el-button>
-        </div>
-      </div>
-    </el-drawer>
   </ContentBase>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { ElButton, ElCard, ElDialog, ElDivider, ElDrawer, ElForm, ElFormItem, ElIcon, ElInput, ElMessage, ElRadio, ElRadioGroup, ElTabPane, ElTabs, ElTag, ElTooltip } from 'element-plus';
-import { EditPen, Search, Star } from '@element-plus/icons-vue';
+import { ref, onMounted } from 'vue';
+import { ElButton, ElCard, ElDialog, ElDivider, ElDrawer, ElForm, ElFormItem, ElIcon, ElInput, ElMessage, ElRadio, ElRadioGroup, ElTag, ElTooltip } from 'element-plus';
+import { Search, Star } from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
-import MarkdownIt from 'markdown-it';
 import { getDictionaryList } from '@/assets/js/module/dictionary/query';
 import { getBookList } from '@/assets/js/module/book/query';
 import { AddEntry } from '@/assets/js/module/entry/add';
@@ -151,27 +119,10 @@ const showResults = ref(false);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const showAddToBookDialog = ref(false);
-const activeTab = ref('edit');
-const currentWordNote = ref('');
 const dictionaries = ref([]);
 const books = ref([]);
 const selectedBookId = ref(null);
 const bookWordExistsMap = ref({}); // 存储每个词书是否包含当前单词
-
-// 初始化markdown渲染器
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true
-});
-
-// 计算属性：渲染markdown内容
-const renderedMarkdown = computed(() => {
-  if (!currentWordNote.value) {
-    return '<p class="empty-note">暂无笔记内容</p>';
-  }
-  return md.render(currentWordNote.value);
-});
 
 onMounted(async () => {
   // 加载词典列表
@@ -280,12 +231,6 @@ const confirmAddToBook = async () => {
     console.error('添加单词失败:', error);
     ElMessage.error('添加单词失败，请重试');
   }
-};
-
-const saveNote = () => {
-  // 这里可以添加保存笔记的逻辑
-  console.log('保存笔记:', currentWordNote.value);
-  showEditNoteDrawer.value = false;
 };
 </script>
 
