@@ -1,5 +1,7 @@
 <template>
   <ContentBase @keydown="handleKeydown" tabindex="0">
+    <!-- Katex CSS for math formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <div v-if="dataStatus === 1" class="word-card">
       <div class="header">
         <el-tooltip content="搜索单词 (快捷键: S)" placement="top">
@@ -67,13 +69,13 @@
     </el-drawer>
   </ContentBase>
 
-  <el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法)" :with-header="true" size="50%">
+<el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法，包括数学公式和表格)" :with-header="true" size="50%">
     <div class="note-editor">
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="编辑" name="edit">
           <el-input
               type="textarea"
-              placeholder="添加笔记 (支持Markdown语法)"
+              placeholder="添加笔记 (支持Markdown语法，包括数学公式: $E=mc^2$ 和表格)"
               v-model="currentWordNote"
               :rows="20"
               maxlength="1000"
@@ -125,11 +127,37 @@ const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const activeTab = ref('edit');
 
-// 初始化markdown渲染器
+// 初始化markdown渲染器 - 支持数学公式和扩展语法
+import MarkdownItMark from 'markdown-it-mark';
+import MarkdownItFootnote from 'markdown-it-footnote';
+import MarkdownItAbbr from 'markdown-it-abbr';
+import MarkdownItIns from 'markdown-it-ins';
+import MarkdownItSub from 'markdown-it-sub';
+import MarkdownItSup from 'markdown-it-sup';
+import MarkdownItTexmath from 'markdown-it-texmath';
+import katex from 'katex';
+
 const md = new MarkdownIt({
   html: true,
   linkify: true,
-  typographer: true
+  typographer: true,
+  // 启用表格支持
+  tables: true
+})
+.use(MarkdownItMark) // 支持标记文本 ==标记==
+.use(MarkdownItFootnote) // 支持脚注
+.use(MarkdownItAbbr) // 支持缩写
+.use(MarkdownItIns) // 支持下划线 ++下划线++
+.use(MarkdownItSub) // 支持下标 H~2~O
+.use(MarkdownItSup) // 支持上标 x^2^
+.use(MarkdownItTexmath, {
+  engine: katex,
+  delimiters: 'dollars',
+  katexOptions: {
+    macros: {
+      "\\RR": "\\mathbb{R}"
+    }
+  }
 });
 
 const showEditNoteDrawerButtonClicked = () => {
@@ -474,6 +502,105 @@ el-icon {
 .markdown-preview :deep(em) {
   color: var(--el-text-color-primary);
   font-style: italic;
+}
+
+/* Katex数学公式样式 */
+.markdown-preview :deep(.katex) {
+  font-size: 1.1em;
+}
+
+.markdown-preview :deep(.katex-display) {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.markdown-preview :deep(.katex-display > .katex) {
+  display: block;
+  text-align: center;
+}
+
+/* 增强表格样式 */
+.markdown-preview :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  border: 1px solid var(--el-border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: var(--el-bg-color);
+}
+
+.markdown-preview :deep(th), .markdown-preview :deep(td) {
+  border: 1px solid var(--el-border-color);
+  padding: 12px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.markdown-preview :deep(th) {
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+.markdown-preview :deep(td) {
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color);
+}
+
+.markdown-preview :deep(tr:nth-child(even)) {
+  background-color: var(--el-fill-color-lighter);
+}
+
+.markdown-preview :deep(tr:hover) {
+  background-color: var(--el-fill-color);
+}
+
+.markdown-preview :deep(mark) {
+  background-color: var(--el-color-warning-light-9);
+  color: var(--el-color-black);
+  padding: 0 2px;
+}
+
+.markdown-preview :deep(abbr) {
+  border-bottom: 1px dotted var(--el-text-color-primary);
+  cursor: help;
+}
+
+.markdown-preview :deep(ins) {
+  background-color: var(--el-color-success-light-9);
+  color: var(--el-color-black);
+  text-decoration: none;
+  padding: 0 2px;
+}
+
+.markdown-preview :deep(sub) {
+  font-size: 0.8em;
+  vertical-align: sub;
+}
+
+.markdown-preview :deep(sup) {
+  font-size: 0.8em;
+  vertical-align: super;
+}
+
+.markdown-preview :deep(.footnotes) {
+  font-size: 0.9em;
+  margin-top: 20px;
+  border-top: 1px solid var(--el-border-color);
+  padding-top: 10px;
+}
+
+.markdown-preview :deep(.footnote-ref) {
+  font-size: 0.8em;
+  vertical-align: super;
+  text-decoration: none;
+}
+
+.markdown-preview :deep(.footnote-backref) {
+  font-size: 0.8em;
+  text-decoration: none;
 }
 
 .empty-note {
