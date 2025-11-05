@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"strconv"
-	"time"
 	"speak-sphere/pkg/server/conf"
 	"speak-sphere/pkg/server/dao"
 	"speak-sphere/pkg/server/model"
 	"speak-sphere/pkg/server/util"
+	"strconv"
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AddEntry(c *gin.Context) {
@@ -202,4 +203,42 @@ func ListEntry(c *gin.Context) {
 		util.JsonHttpResponse(c, 1, "error", "词条查询失败, 请输入合法的current_page值")
 	}
 	util.JsonHttpResponse(c, 0, "success", dao.ListEntry(bookID, pageSize, currentPage))
+}
+
+func CheckWordInBook(c *gin.Context) {
+	word := c.Query("word")
+	bookID, err := strconv.Atoi(c.Query("book_id"))
+	if err != nil {
+		util.JsonHttpResponse(c, 1, "词书ID不合法", nil)
+		return
+	}
+	
+	if word == "" {
+		util.JsonHttpResponse(c, 1, "单词不能为空", nil)
+		return
+	}
+	
+	// 检查用户是否有权限访问该词书
+	userID, err := util.GetUserID(c)
+	if err != nil {
+		util.JsonHttpResponse(c, 1, "用户不存在", nil)
+		return
+	}
+	
+	book, found := dao.FindBookByID(bookID)
+	if !found {
+		util.JsonHttpResponse(c, 1, "词书不存在", nil)
+		return
+	}
+	
+	if book.UserID != userID {
+		util.JsonHttpResponse(c, 1, "您无权访问该词书", nil)
+		return
+	}
+	
+	// 检查单词是否在词书中
+	_, exists := dao.FindEntryByWord(word, bookID)
+	util.JsonHttpResponse(c, 0, "success", map[string]bool{
+		"exists": exists,
+	})
 }

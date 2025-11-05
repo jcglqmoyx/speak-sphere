@@ -50,4 +50,21 @@ async function getWordList(bookId, pageSize, currentPage) {
     }
 }
 
-export {fetchWords, getWordCount, getWordList};
+async function checkWordInBook(word, bookId) {
+    try {
+        const serverLink = localStorage.getItem("server_link");
+        const token = localStorage.getItem("token");
+        const response = await axios.get(serverLink + '/entry/check?word=' + encodeURIComponent(word) + '&book_id=' + bookId, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data
+    } catch (error) {
+        console.error('Error fetching data from backend:', error);
+        return { code: 1, message: '查询失败' };
+    }
+}
+
+export {fetchWords, getWordCount, getWordList, checkWordInBook};

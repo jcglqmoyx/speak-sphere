@@ -21,6 +21,11 @@
             <div class="card-header">
               <span class="word-title">{{ currentWord }}</span>
               <div class="header-actions">
+                <el-tooltip content="收藏单词" placement="top">
+                  <el-button circle @click="handleAddToBook" :disabled="!searchWord.trim()" class="favorite-btn">
+                    <el-icon><Star /></el-icon>
+                  </el-button>
+                </el-tooltip>
                 <el-tooltip content="搜索词典 (快捷键: S)" placement="top">
                   <el-button circle @click="showSearchDrawer = !showSearchDrawer">
                     <el-icon><Search /></el-icon>
@@ -68,6 +73,38 @@
       </div>
     </el-drawer>
 
+    <!-- 收藏单词对话框 -->
+    <el-dialog v-model="showAddToBookDialog" title="收藏单词" width="500px">
+      <div class="dialog-title">将单词 "<strong>{{ searchWord }}</strong>" 添加到词书</div>
+      <el-form>
+        <el-form-item label="选择词书">
+          <el-radio-group v-model="selectedBookId" class="book-radio-group">
+            <el-radio v-for="book in books" :key="book.id" :label="book.id" class="book-radio">
+              <div class="book-radio-content">
+                <span>{{ book.title }}</span>
+                <el-tag v-if="bookWordExistsMap[book.id]" type="success" size="small" class="exists-tag">
+                  已存在
+                </el-tag>
+              </div>
+            </el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showAddToBookDialog = false">取消</el-button>
+          <el-button 
+            type="primary" 
+            @click="confirmAddToBook" 
+            :disabled="!selectedBookId"
+            :class="{ 'warning-btn': selectedBookId && isWordInSelectedBook() }"
+          >
+            {{ selectedBookId && isWordInSelectedBook() ? '无需重复添加' : '确认添加' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 笔记编辑抽屉 -->
     <el-drawer v-model="showEditNoteDrawer" title="笔记 (Markdown支持)" :with-header="true" size="50%">
       <div class="note-editor">
@@ -98,11 +135,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { ElButton, ElCard, ElDivider, ElDrawer, ElIcon, ElInput, ElTabPane, ElTabs, ElTooltip } from 'element-plus';
-import { EditPen, Search } from '@element-plus/icons-vue';
+import { ElButton, ElCard, ElDialog, ElDivider, ElDrawer, ElForm, ElFormItem, ElIcon, ElInput, ElMessage, ElRadio, ElRadioGroup, ElTabPane, ElTabs, ElTag, ElTooltip } from 'element-plus';
+import { EditPen, Search, Star } from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
 import MarkdownIt from 'markdown-it';
 import { getDictionaryList } from '@/assets/js/module/dictionary/query';
+import { getBookList } from '@/assets/js/module/book/query';
+import { AddEntry } from '@/assets/js/module/entry/add';
+import { checkWordInBook } from '@/assets/js/module/entry/query';
 
 const searchWord = ref('');
 const currentWord = ref('');
@@ -110,9 +150,13 @@ const wordMeaning = ref('');
 const showResults = ref(false);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
+const showAddToBookDialog = ref(false);
 const activeTab = ref('edit');
 const currentWordNote = ref('');
 const dictionaries = ref([]);
+const books = ref([]);
+const selectedBookId = ref(null);
+const bookWordExistsMap = ref({}); // 存储每个词书是否包含当前单词
 
 // 初始化markdown渲染器
 const md = new MarkdownIt({
@@ -131,9 +175,15 @@ const renderedMarkdown = computed(() => {
 
 onMounted(async () => {
   // 加载词典列表
-  const response = await getDictionaryList();
-  if (response && response.data) {
-    dictionaries.value = response.data;
+  const dictionaryResponse = await getDictionaryList();
+  if (dictionaryResponse && dictionaryResponse.data) {
+    dictionaries.value = dictionaryResponse.data;
+  }
+
+  // 加载词书列表
+  const bookResponse = await getBookList(100000000, 1);
+  if (bookResponse && bookResponse.data) {
+    books.value = bookResponse.data;
   }
 });
 
@@ -169,6 +219,69 @@ const handleKeydown = (event) => {
   }
 };
 
+const handleAddToBook = async () => {
+  if (!searchWord.value.trim()) {
+    return;
+  }
+  
+  selectedBookId.value = null;
+  bookWordExistsMap.value = {}; // 清空之前的记录
+  showAddToBookDialog.value = true;
+  
+  // 检查每个词书是否已包含当前单词
+  if (books.value.length > 0) {
+    const word = searchWord.value.trim();
+    
+    for (const book of books.value) {
+      try {
+        const response = await checkWordInBook(word, book.id);
+        const exists = response && response.code === 0 && response.data.exists;
+        bookWordExistsMap.value[book.id] = exists;
+        
+        if (exists && !selectedBookId.value) {
+          selectedBookId.value = book.id;
+        }
+      } catch (error) {
+        console.error(`检查词书 ${book.title} 失败:`, error);
+        bookWordExistsMap.value[book.id] = false;
+      }
+    }
+  }
+};
+
+const isWordInSelectedBook = () => {
+  if (!selectedBookId.value) {
+    return false;
+  }
+  return !!bookWordExistsMap.value[selectedBookId.value];
+};
+
+const confirmAddToBook = async () => {
+  if (!selectedBookId.value || !searchWord.value.trim()) {
+    return;
+  }
+
+  try {
+    const response = await AddEntry(
+      selectedBookId.value,
+      searchWord.value.trim(),
+      wordMeaning.value || '暂无释义', // 使用当前显示的释义，如果没有则使用默认值
+      ''
+    );
+
+    if (response && response.code === 0) {
+      ElMessage.success('添加单词成功');
+      showAddToBookDialog.value = false;
+    } else {
+      const errorMsg = response ? response.message : '添加失败，请重试';
+      ElMessage.error(errorMsg);
+    }
+  } catch (error) {
+    console.error('添加单词失败:', error);
+    ElMessage.error('添加单词失败，请重试');
+  }
+};
+
 const saveNote = () => {
   // 这里可以添加保存笔记的逻辑
   console.log('保存笔记:', currentWordNote.value);
@@ -189,6 +302,31 @@ const saveNote = () => {
 
 .search-input {
   width: 100%;
+}
+
+:deep(.el-input-group__append) {
+  display: flex;
+  gap: 0;
+}
+
+:deep(.el-input-group__append .el-button) {
+  border-radius: 0;
+  margin: 0;
+}
+
+:deep(.el-input-group__append .el-button:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 1px solid var(--el-border-color);
+}
+
+:deep(.el-input-group__append .el-button:last-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: var(--el-border-radius-base);
+  border-bottom-right-radius: var(--el-border-radius-base);
 }
 
 .results-section {
@@ -392,5 +530,71 @@ const saveNote = () => {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
+}
+
+.favorite-btn {
+  /* 移除自定义样式，使用与其他按钮一致的默认样式 */
+}
+
+.favorite-btn:disabled {
+  background-color: #f5f5f5;
+  border-color: #dcdfe6;
+  color: #c0c4cc;
+}
+
+.book-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-radio {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.book-radio:hover {
+  border-color: var(--el-color-primary);
+  background-color: var(--el-fill-color-lighter);
+}
+
+:deep(.el-radio__input.is-checked + .el-radio__label) {
+  color: var(--el-color-primary);
+}
+
+:deep(.el-radio__input.is-checked .el-radio__inner) {
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+}
+
+.dialog-title {
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: var(--el-text-color-primary);
+}
+
+.book-radio-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.exists-tag {
+  margin-left: 10px;
+}
+
+.warning-btn {
+  background-color: var(--el-color-warning) !important;
+  border-color: var(--el-color-warning) !important;
+}
+
+.warning-btn:hover {
+  background-color: var(--el-color-warning-light-3) !important;
+  border-color: var(--el-color-warning-light-3) !important;
 }
 </style>

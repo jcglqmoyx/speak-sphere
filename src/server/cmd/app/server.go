@@ -24,18 +24,16 @@ func readConfig(cfg *conf.Config, path string) error {
 }
 
 func Run() {
-	exePath, err := os.Executable()
-	if err != nil {
-		fmt.Println("Error getting executable path:", err)
-		return
-	}
-	exeDir := filepath.Dir(exePath)
-	configFilePath := exeDir + "/cmd/app/config.yaml"
+	// 直接使用相对路径
+	configFilePath := "cmd/app/config.yaml"
 	if err := readConfig(&conf.Cfg, configFilePath); err != nil {
 		log.Fatalf("读取配置文件失败: %v", err)
 	}
 
-	conf.Cfg.Sqlite.Path = exeDir + "/" + conf.Cfg.Sqlite.Path
+	// SQLite路径改为相对于当前目录
+	if !filepath.IsAbs(conf.Cfg.Sqlite.Path) {
+		conf.Cfg.Sqlite.Path = filepath.Join(".", conf.Cfg.Sqlite.Path)
+	}
 
 	gin.SetMode(conf.Cfg.Mode)
 	conf.InitLogger(conf.Cfg.Log)

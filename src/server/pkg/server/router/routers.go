@@ -50,6 +50,7 @@ func RegisterEntryRouter(route *gin.Engine) {
 	r.GET("/list", controller.ListEntry)
 	r.GET("/learn", controller.GetEntriesToLearn)
 	r.GET("/review", controller.GetEntriesToReview)
+	r.GET("/check", controller.CheckWordInBook)
 }
 
 func RegisterUserRouter(route *gin.Engine) {
