@@ -35,8 +35,8 @@
             </div>
           </template>
 
-          <div class="word-content">
-            <div v-if="wordMeaning" class="meaning">{{ wordMeaning }}</div>
+          <div class="word-content" @click="handleWordContentClick">
+            <div v-if="wordMeaning" class="meaning" v-html="wordMeaning"></div>
             <div v-else class="no-meaning">该单词暂无释义</div>
           </div>
         </el-card>
@@ -111,6 +111,7 @@ import { getDictionaryList } from '@/assets/js/module/dictionary/query';
 import { getBookList } from '@/assets/js/module/book/query';
 import { AddEntry } from '@/assets/js/module/entry/add';
 import { checkWordInBook } from '@/assets/js/module/entry/query';
+import { getWordDefinition, formatDefinition } from '@/assets/js/util/dictionary_api';
 
 const searchWord = ref('');
 const currentWord = ref('');
@@ -138,16 +139,35 @@ onMounted(async () => {
   }
 });
 
-const handleSearch = () => {
+// 处理单词内容区域的点击事件
+const handleWordContentClick = (event) => {
+  // 检查点击的是否是发音按钮
+  if (event.target.classList.contains('audio-btn')) {
+    const audioUrl = event.target.getAttribute('data-audio');
+    if (audioUrl) {
+      playAudio(audioUrl);
+    }
+  }
+};
+
+const handleSearch = async () => {
   if (searchWord.value.trim()) {
     currentWord.value = searchWord.value.trim();
-    wordMeaning.value = ''; // 这里只做前端演示，实际应用中可以从本地存储或其他来源获取释义
+    wordMeaning.value = 'Searching...';
     showResults.value = true;
 
-    // 模拟获取释义（实际应用中这里可以调用API）
-    setTimeout(() => {
-      wordMeaning.value = `这是 ${currentWord.value} 的示例释义。在实际应用中，这里会显示单词的真实释义。`;
-    }, 300);
+    try {
+      const result = await getWordDefinition(currentWord.value);
+      
+      if (result.success) {
+        wordMeaning.value = formatDefinition(result.data);
+      } else {
+        wordMeaning.value = 'Sorry, the word was not found. Please check the spelling and try again.';
+      }
+    } catch (error) {
+      console.error('Failed to fetch word definition:', error);
+      wordMeaning.value = 'Search failed. Please check your network connection and try again.';
+    }
   }
 };
 
@@ -232,23 +252,42 @@ const confirmAddToBook = async () => {
     ElMessage.error('添加单词失败，请重试');
   }
 };
+
+// 播放音频函数
+const playAudio = (audioUrl) => {
+  try {
+    const audio = new Audio(audioUrl);
+    audio.play().catch(error => {
+      console.error('音频播放失败:', error);
+    });
+  } catch (error) {
+    console.error('音频加载失败:', error);
+  }
+};
 </script>
 
 <style scoped>
+/* 基础样式 - 移动端优先 */
 .query-container {
-  max-width: 600px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .search-section {
   margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
 }
 
 .search-input {
   width: 100%;
+  max-width: 100%;
 }
 
+/* 搜索栏按钮样式 */
 :deep(.el-input-group__append) {
   display: flex;
   gap: 0;
@@ -283,8 +322,10 @@ const confirmAddToBook = async () => {
   margin-top: 50px;
 }
 
-.welcome-card {
-  max-width: 500px;
+.welcome-card,
+.word-card {
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -313,10 +354,235 @@ const confirmAddToBook = async () => {
   padding: 20px 0;
 }
 
-.meaning {
-  font-size: 16px;
-  line-height: 1.6;
+/* ===== 响应式断点设置 ===== */
+
+/* 平板端 - 768px 及以上 */
+@media (min-width: 768px) {
+  .query-container {
+    max-width: 90%;
+    padding: 30px;
+  }
+  
+  .search-input {
+    width: 80%;
+  }
+  
+  .welcome-card,
+  .word-card {
+    width: 80%;
+    max-width: 80%;
+    margin: 0 auto;
+  }
+  
+  .word-title {
+    font-size: 28px;
+  }
+  
+  :deep(.meaning) {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  
+  :deep(.meaning .word-title) {
+    font-size: 40px;
+  }
+  
+  :deep(.meaning .phonetic) {
+    font-size: 20px;
+    margin-bottom: 25px;
+  }
+  
+  :deep(.meaning .part-of-speech) {
+    font-size: 22px;
+    margin: 20px 0 15px 0;
+  }
+  
+  :deep(.meaning .example) {
+    font-size: 15px;
+  }
+  
+  :deep(.meaning .definition-text) {
+    font-size: 16px;
+  }
+}
+
+/* 桌面端 - 1024px 及以上 */
+@media (min-width: 1024px) {
+  .query-container {
+    max-width: 1200px;
+    padding: 40px;
+  }
+  
+  .search-input {
+    width: 70%;
+    max-width: 800px;
+  }
+  
+  .welcome-card,
+  .word-card {
+    width: 70%;
+    max-width: 70%;
+    margin: 0 auto;
+  }
+  
+  .word-title {
+    font-size: 32px;
+  }
+  
+  .header-actions {
+    gap: 15px;
+  }
+  
+  :deep(.meaning) {
+    font-size: 18px;
+    line-height: 1.8;
+  }
+  
+  :deep(.meaning .word-title) {
+    font-size: 48px;
+    margin-bottom: 15px;
+  }
+  
+  :deep(.meaning .phonetic) {
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+  
+  :deep(.meaning .part-of-speech) {
+    font-size: 26px;
+    margin: 25px 0 20px 0;
+  }
+  
+  :deep(.meaning .definitions-list) {
+    margin-left: 20px;
+  }
+  
+  :deep(.meaning .definition-item) {
+    margin: 12px 0;
+    padding-left: 10px;
+  }
+  
+  :deep(.meaning .definition-number) {
+    font-size: 18px;
+  }
+  
+  :deep(.meaning .definition-text) {
+    font-size: 18px;
+  }
+  
+  :deep(.meaning .example) {
+    font-size: 18px;
+    padding-left: 25px;
+    margin: 8px 0;
+  }
+  
+  :deep(.meaning .synonyms),
+  :deep(.meaning .meaning-synonyms),
+  :deep(.meaning .meaning-antonyms) {
+    font-size: 18px;
+    padding-left: 25px;
+    margin: 5px 0;
+  }
+  
+  :deep(.meaning .audio-btn) {
+    font-size: 14px;
+    padding: 4px 12px;
+  }
+}
+
+/* ===== 释义内容样式 ===== */
+:deep(.meaning) {
   color: var(--el-text-color-regular);
+}
+
+:deep(.meaning .word-title) {
+  font-weight: bold;
+  color: var(--el-color-primary);
+  margin-bottom: 10px;
+}
+
+:deep(.meaning .phonetic) {
+  color: var(--el-text-color-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+:deep(.meaning .audio-buttons) {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+:deep(.meaning .audio-btn) {
+  background: var(--el-color-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+:deep(.meaning .audio-btn:hover) {
+  background: var(--el-color-primary-light-3);
+}
+
+:deep(.meaning .audio-btn:active) {
+  background: var(--el-color-primary-dark-2);
+}
+
+:deep(.meaning .meanings-container) {
+  margin-top: 10px;
+}
+
+:deep(.meaning .part-of-speech) {
+  font-weight: bold;
+  color: var(--el-color-primary);
+}
+
+:deep(.meaning .definitions-list) {
+  margin-left: 10px;
+}
+
+:deep(.meaning .definition-item) {
+  margin: 8px 0;
+  padding-left: 5px;
+}
+
+:deep(.meaning .definition-number) {
+  font-weight: bold;
+  color: var(--el-color-primary);
+  margin-right: 5px;
+}
+
+:deep(.meaning .definition-text) {
+  color: var(--el-text-color-regular);
+}
+
+:deep(.meaning .example) {
+  padding-left: 20px;
+  margin: 5px 0;
+  color: var(--el-text-color-secondary);
+  font-style: italic;
+}
+
+:deep(.meaning .synonyms),
+:deep(.meaning .meaning-synonyms),
+:deep(.meaning .meaning-antonyms) {
+  padding-left: 20px;
+  margin: 3px 0;
+  color: var(--el-color-success);
+  font-size: 18px;
+}
+
+:deep(.meaning .meaning-antonyms) {
+  color: var(--el-color-danger);
+}
+
+:deep(.meaning .meaning-separator) {
+  height: 1px;
+  background: var(--el-border-color);
+  margin: 15px 0;
 }
 
 .no-meaning {
