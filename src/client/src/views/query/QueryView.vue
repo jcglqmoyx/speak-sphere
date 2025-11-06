@@ -15,7 +15,7 @@
         </el-input>
       </div>
 
-      <div v-if="showResults" class="results-section">
+    <div v-if="showResults" class="results-section">
         <el-card class="word-card">
           <template #header>
             <div class="card-header">
@@ -36,7 +36,10 @@
           </template>
 
           <div class="word-content" @click="handleWordContentClick">
-            <div v-if="wordMeaning" class="meaning" v-html="wordMeaning"></div>
+            <div v-if="isLoading" class="loading-container">
+              <el-skeleton :rows="5" animated />
+            </div>
+            <div v-else-if="wordMeaning" class="meaning" v-html="wordMeaning"></div>
             <div v-else class="no-meaning">该单词暂无释义</div>
           </div>
         </el-card>
@@ -116,6 +119,7 @@ import { getWordDefinition, formatDefinition } from '@/assets/js/util/dictionary
 const searchWord = ref('');
 const currentWord = ref('');
 const wordMeaning = ref('');
+const isLoading = ref(false);
 const showResults = ref(false);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
@@ -153,20 +157,22 @@ const handleWordContentClick = (event) => {
 const handleSearch = async () => {
   if (searchWord.value.trim()) {
     currentWord.value = searchWord.value.trim();
-    wordMeaning.value = 'Searching...';
+    isLoading.value = true;
     showResults.value = true;
 
     try {
       const result = await getWordDefinition(currentWord.value);
       
       if (result.success) {
-        wordMeaning.value = formatDefinition(result.data);
+        wordMeaning.value = formatDefinition(result);
       } else {
         wordMeaning.value = 'Sorry, the word was not found. Please check the spelling and try again.';
       }
     } catch (error) {
       console.error('Failed to fetch word definition:', error);
       wordMeaning.value = 'Search failed. Please check your network connection and try again.';
+    } finally {
+      isLoading.value = false;
     }
   }
 };
@@ -576,13 +582,79 @@ const playAudio = (audioUrl) => {
 }
 
 :deep(.meaning .meaning-antonyms) {
-  color: var(--el-color-danger);
+    color: var(--el-color-danger);
 }
 
 :deep(.meaning .meaning-separator) {
-  height: 1px;
-  background: var(--el-border-color);
-  margin: 15px 0;
+    height: 1px;
+    background: var(--el-border-color);
+    margin: 15px 0;
+}
+
+/* Wiktionary iframe 样式 */
+:deep(.wiktionary-container) {
+    margin: 10px 0;
+    position: relative;
+}
+
+:deep(.wiktionary-notice) {
+    background-color: var(--el-color-warning-light-9);
+    border: 1px solid var(--el-color-warning-light-5);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    color: var(--el-color-warning-dark-2);
+    font-size: 14px;
+    text-align: center;
+}
+
+:deep(.wiktionary-loading) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 4px;
+    min-height: 300px;
+    color: var(--el-text-color-secondary);
+}
+
+:deep(.loading-spinner) {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--el-border-color-lighter);
+    border-left: 4px solid var(--el-color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+:deep(.wiktionary-iframe) {
+    width: 100%;
+    height: 600px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 4px;
+    background-color: white;
+}
+
+/* 响应式 iframe 高度调整 */
+@media (max-width: 768px) {
+    :deep(.wiktionary-iframe) {
+        height: 400px;
+    }
+}
+
+@media (min-width: 1024px) {
+    :deep(.wiktionary-iframe) {
+        height: 800px;
+    }
 }
 
 .no-meaning {

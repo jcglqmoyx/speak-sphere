@@ -31,25 +31,62 @@ async function getWordDefinition(word) {
         }
 
         const data = await response.json();
+        
+        // 检查是否返回有效数据
+        if (!data || !Array.isArray(data) || data.length === 0 || !data[0].word) {
+            throw new Error('Empty or invalid data returned from dictionary API');
+        }
+
         return {
             success: true,
-            data: data
+            data: data,
+            source: 'dictionaryapi'
         };
     } catch (error) {
-        console.error('Error fetching word definition:', error);
+        console.error('Error fetching word definition from dictionaryapi.dev:', error);
+        
+        // 返回wiktionary作为备用方案
         return {
-            success: false,
-            error: error.message || 'Failed to fetch word definition'
+            success: true, // 仍然返回success=true，因为wiktionary是有效的备选方案
+            data: null,
+            source: 'wiktionary',
+            wiktionaryUrl: `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`
         };
     }
 }
 
 /**
  * 格式化字典API返回的释义数据
- * @param {Object} apiData - 字典API返回的数据
+ * @param {Object} apiResponse - 字典API返回的响应数据，包含source字段
  * @returns {string} 格式化后的释义HTML字符串
  */
-function formatDefinition(apiData) {
+function formatDefinition(apiResponse) {
+    // 如果是wiktionary源，返回iframe嵌入的HTML
+    if (apiResponse.source === 'wiktionary') {
+        return `
+            <div class="wiktionary-container">
+                <div class="wiktionary-notice">
+                    当前使用 Wiktionary 作为备选词典源
+                </div>
+                <div class="wiktionary-loading" id="wiktionary-loading-${Date.now()}">
+                    <div class="loading-spinner"></div>
+                    <span>正在加载 Wiktionary 页面...</span>
+                </div>
+                <iframe 
+                    src="${apiResponse.wiktionaryUrl}" 
+                    class="wiktionary-iframe"
+                    title="Wiktionary - ${apiResponse.wiktionaryUrl.split('/').pop()}"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    referrerpolicy="no-referrer"
+                    onload="document.getElementById('wiktionary-loading-${Date.now()}').style.display='none'; this.style.display='block'"
+                    style="display:none"
+                ></iframe>
+            </div>
+        `;
+    }
+
+    // 原有的dictionaryapi.dev数据处理逻辑
+    const apiData = apiResponse.data;
     if (!apiData || !Array.isArray(apiData) || apiData.length === 0) {
         return '<div class="no-meaning">No definition found</div>';
     }
