@@ -7,9 +7,7 @@
         <el-tooltip content="搜索单词 (快捷键: S)" placement="top">
           <el-button v-if="showHeader" class="centered-button" circle @click="showSearchDrawer = !showSearchDrawer">
             <el-icon>
-              <el-icon>
-                <Search/>
-              </el-icon>
+              <Search/>
             </el-icon>
           </el-button>
         </el-tooltip>
@@ -31,9 +29,23 @@
         </el-tooltip>
       </div>
 
-      <div>
-        <div class="word">{{ words[idx].word }}</div>
-        <div v-if="status === 2 || status === 3" class="word">{{ words[idx].meaning }}</div>
+      <!-- 单词显示区域 -->
+      <div class="word-display">
+        <div class="word-title-section">
+          <h1 class="word">{{ words[idx].word }}</h1>
+        </div>
+
+        <!-- 释义显示区域 -->
+        <div v-if="status === 2 || status === 3" class="meaning-container">
+          <div v-if="isFetchingDefinition" class="fetching-meaning">
+            正在查询释义...
+          </div>
+          <div v-else-if="hasMeaning" class="meaning-content" v-html="currentWordMeaning"
+               @click="handleWordContentClick"></div>
+          <div v-else class="no-meaning">
+            暂无释义
+          </div>
+        </div>
       </div>
 
       <div class="footer">
@@ -99,6 +111,7 @@ import {computed, defineProps, onMounted, reactive, ref} from "vue";
 import {getUserProfile} from "@/assets/js/module/user/query";
 import {getDictionaryList} from "@/assets/js/module/dictionary/query";
 import {fetchWords} from "@/assets/js/module/entry/query";
+import {formatDefinition, getWordDefinition} from "@/assets/js/util/dictionary_api";
 import {
   resetEntryStudyCountToZero,
   setUnwanted,
@@ -127,20 +140,20 @@ const showHeader = ref(true);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const activeTab = ref('edit');
+const isFetchingDefinition = ref(false);
 
 const md = new MarkdownIt({
   html: true,
   linkify: true,
   typographer: true,
-  // 启用表格支持
   tables: true
 })
-    .use(MarkdownItMark) // 支持标记文本 ==标记==
-    .use(MarkdownItFootnote) // 支持脚注
-    .use(MarkdownItAbbr) // 支持缩写
-    .use(MarkdownItIns) // 支持下划线 ++下划线++
-    .use(MarkdownItSub) // 支持下标 H~2~O
-    .use(MarkdownItSup) // 支持上标 x^2^
+    .use(MarkdownItMark)
+    .use(MarkdownItFootnote)
+    .use(MarkdownItAbbr)
+    .use(MarkdownItIns)
+    .use(MarkdownItSub)
+    .use(MarkdownItSup)
     .use(MarkdownItTexmath, {
       engine: katex,
       delimiters: 'dollars',
@@ -209,6 +222,11 @@ onMounted(
       const getUserProfileResponse = await getUserProfile();
       checkResponse(getUserProfileResponse);
       timesCountedAsKnown.value = getUserProfileResponse.times_counted_as_known;
+
+      // 初始化词典查询
+      if (dataStatus.value === 1 && words.length > 0) {
+        checkAndFetchDefinition();
+      }
     }
 );
 
@@ -280,6 +298,52 @@ const gotItWrong = async () => {
   await showNextWord();
 }
 
+let currentWordNote = ref('');
+let currentWordMeaning = ref('');
+const setCurrentWordNote = () => {
+  currentWordNote.value = words[idx.value].note;
+};
+
+// 计算当前单词是否有释义
+const hasMeaning = computed(() => {
+  // 检查当前显示的释义，包括API查询到的
+  const wordMeaning = words[idx.value]?.meaning || currentWordMeaning.value;
+  return wordMeaning && wordMeaning.trim() !== '';
+});
+
+const checkAndFetchDefinition = async () => {
+  const currentWord = words[idx.value];
+  if (!currentWord) return;
+
+  const meaning = currentWord.meaning || '';
+  // 如果没有释义，调用API查询
+  if (!meaning || meaning.trim() === '' && !isFetchingDefinition.value) {
+    isFetchingDefinition.value = true;
+    currentWordMeaning.value = '';
+
+    try {
+      const result = await getWordDefinition(currentWord.word);
+
+      if (result.success) {
+        currentWordMeaning.value = formatDefinition(result);
+        console.log(`成功查询到单词 "${currentWord.word}" 的释义`);
+      } else {
+        currentWordMeaning.value = '暂无释义';
+        console.log(`单词 "${currentWord.word}" 查询失败:`, result);
+      }
+    } catch (error) {
+      console.error(`单词 "${currentWord.word}" 查询异常:`, error);
+      currentWordMeaning.value = '暂无释义';
+    } finally {
+      isFetchingDefinition.value = false;
+    }
+  } else {
+    currentWordMeaning.value = meaning;
+    console.log(`单词 "${currentWord.word}" 已有释义:`, meaning);
+  }
+};
+
+// 初始化当前单词的释义查询
 const showNextWord = async () => {
   let tempIdx = idx.value;
   do {
@@ -290,18 +354,39 @@ const showNextWord = async () => {
   } else {
     status.value = 1;
     idx.value = tempIdx;
+
+    // 在切换单词后检查是否需要查询释义
+    checkAndFetchDefinition();
   }
 }
-
-let currentWordNote = ref('');
-const setCurrentWordNote = () => {
-  currentWordNote.value = words[idx.value].note;
-};
 
 const updateNote = async () => {
   const updateNoteResponse = await updateEntry(words[idx.value].id, words[idx.value].word, words[idx.value].meaning, words[idx.value].book_id, currentWordNote.value, words[idx.value].unwanted, words[idx.value].study_count, words[idx.value].date_to_review, words[idx.value].created_at);
   checkResponse(updateNoteResponse);
 }
+
+// 处理单词内容区域的点击事件 - 用于发音按钮
+const handleWordContentClick = (event) => {
+  // 检查点击的是否是发音按钮
+  if (event.target.classList.contains('audio-btn')) {
+    const audioUrl = event.target.getAttribute('data-audio');
+    if (audioUrl) {
+      playAudio(audioUrl);
+    }
+  }
+};
+
+// 播放音频
+const playAudio = (audioUrl) => {
+  try {
+    const audio = new Audio(audioUrl);
+    audio.play().catch(error => {
+      console.error('音频播放失败:', error);
+    });
+  } catch (error) {
+    console.error('音频加载失败:', error);
+  }
+};
 </script>
 
 <style scoped>
@@ -309,9 +394,10 @@ const updateNote = async () => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 80vh;
-  max-width: 400px;
+  height: 85vh;
+  max-width: 800px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .header {
@@ -320,23 +406,94 @@ const updateNote = async () => {
   padding: 10px;
 }
 
-.word {
+.word-display {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+}
+
+.word-title-section {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.word {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--el-color-primary);
+  margin: 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.meaning-container {
+  width: 100%;
+  /* 使用calc是为了使字体在桌面和手机上的大小能比较均衡 */
+  font-size: calc(1vw + 1.5vh);
+  min-height: 400px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 25px;
+  background: var(--el-bg-color-page);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--el-border-color-light);
+
+  /* 优化滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--el-color-primary-light-5) var(--el-bg-color-page);
+}
+
+/* Webkit浏览器滚动条样式 */
+.meaning-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.meaning-container::-webkit-scrollbar-track {
+  background: var(--el-bg-color-page);
+  border-radius: 4px;
+}
+
+.meaning-container::-webkit-scrollbar-thumb {
+  background: var(--el-color-primary-light-5);
+  border-radius: 4px;
+}
+
+.meaning-container::-webkit-scrollbar-thumb:hover {
+  background: var(--el-color-primary);
+}
+
+.meaning-content {
+  width: 100%;
+}
+
+.fetching-meaning {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  height: 200px;
+  font-size: 18px;
+  color: var(--el-text-color-secondary);
+  font-style: italic;
+}
+
+.no-meaning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 18px;
+  color: var(--el-text-color-placeholder);
+  font-style: italic;
 }
 
 .footer {
   display: flex;
   justify-content: space-around;
   padding: 10px;
-}
-
-el-icon {
-  height: 100%;
-  width: 100%;
 }
 
 .centered-button {
@@ -353,15 +510,11 @@ el-icon {
   flex-direction: column;
 }
 
-:deep(.el-tabs__content) {
-  flex: 1;
-  overflow-y: auto;
-}
-
-:deep(.el-textarea__inner) {
-  height: 100%;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+.empty-note {
+  color: var(--el-text-color-placeholder);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
 }
 
 .markdown-preview {
@@ -371,234 +524,6 @@ el-icon {
   border: 1px solid var(--el-border-color);
   border-radius: 4px;
   background-color: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(h1) {
-  color: var(--el-text-color-primary);
-  border-bottom: 1px solid var(--el-border-color);
-  padding-bottom: 5px;
-  margin-top: 0;
-}
-
-.markdown-preview :deep(h2) {
-  color: var(--el-text-color-primary);
-  border-bottom: 1px solid var(--el-border-color);
-  padding-bottom: 5px;
-}
-
-.markdown-preview :deep(h3) {
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(h4) {
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(h5) {
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(h6) {
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(p) {
-  color: var(--el-text-color-primary);
-  line-height: 1.6;
-}
-
-.markdown-preview :deep(code) {
-  background-color: var(--el-fill-color-light);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(pre) {
-  background-color: var(--el-fill-color-light);
-  padding: 10px;
-  border-radius: 4px;
-  overflow-x: auto;
-  border: 1px solid var(--el-border-color);
-}
-
-.markdown-preview :deep(pre code) {
-  background-color: transparent;
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(blockquote) {
-  border-left: 4px solid var(--el-color-primary);
-  padding-left: 10px;
-  margin-left: 0;
-  color: var(--el-text-color-primary);
-  background-color: var(--el-fill-color-lighter);
-}
-
-.markdown-preview :deep(ul), .markdown-preview :deep(ol) {
-  padding-left: 20px;
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(li) {
-  margin-bottom: 4px;
-  color: var(--el-text-color-primary);
-}
-
-.markdown-preview :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 10px 0;
-  border: 1px solid var(--el-border-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.markdown-preview :deep(th), .markdown-preview :deep(td) {
-  border: 1px solid var(--el-border-color);
-  padding: 8px;
-  text-align: left;
-}
-
-.markdown-preview :deep(th) {
-  background-color: var(--el-fill-color-light);
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-
-.markdown-preview :deep(td) {
-  color: var(--el-text-color-primary);
-  background-color: var(--el-bg-color);
-}
-
-.markdown-preview :deep(tr:nth-child(even)) {
-  background-color: var(--el-fill-color-lighter);
-}
-
-.markdown-preview :deep(a) {
-  color: var(--el-color-primary);
-  text-decoration: none;
-}
-
-.markdown-preview :deep(a:hover) {
-  text-decoration: underline;
-}
-
-.markdown-preview :deep(strong) {
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-
-.markdown-preview :deep(em) {
-  color: var(--el-text-color-primary);
-  font-style: italic;
-}
-
-/* Katex数学公式样式 */
-.markdown-preview :deep(.katex) {
-  font-size: 1.1em;
-}
-
-.markdown-preview :deep(.katex-display) {
-  margin: 1em 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.markdown-preview :deep(.katex-display > .katex) {
-  display: block;
-  text-align: center;
-}
-
-/* 增强表格样式 */
-.markdown-preview :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 10px 0;
-  border: 1px solid var(--el-border-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  background-color: var(--el-bg-color);
-}
-
-.markdown-preview :deep(th), .markdown-preview :deep(td) {
-  border: 1px solid var(--el-border-color);
-  padding: 12px;
-  text-align: left;
-  line-height: 1.4;
-}
-
-.markdown-preview :deep(th) {
-  background-color: var(--el-fill-color-light);
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-  text-align: center;
-}
-
-.markdown-preview :deep(td) {
-  color: var(--el-text-color-primary);
-  background-color: var(--el-bg-color);
-}
-
-.markdown-preview :deep(tr:nth-child(even)) {
-  background-color: var(--el-fill-color-lighter);
-}
-
-.markdown-preview :deep(tr:hover) {
-  background-color: var(--el-fill-color);
-}
-
-.markdown-preview :deep(mark) {
-  background-color: var(--el-color-warning-light-9);
-  color: var(--el-color-black);
-  padding: 0 2px;
-}
-
-.markdown-preview :deep(abbr) {
-  border-bottom: 1px dotted var(--el-text-color-primary);
-  cursor: help;
-}
-
-.markdown-preview :deep(ins) {
-  background-color: var(--el-color-success-light-9);
-  color: var(--el-color-black);
-  text-decoration: none;
-  padding: 0 2px;
-}
-
-.markdown-preview :deep(sub) {
-  font-size: 0.8em;
-  vertical-align: sub;
-}
-
-.markdown-preview :deep(sup) {
-  font-size: 0.8em;
-  vertical-align: super;
-}
-
-.markdown-preview :deep(.footnotes) {
-  font-size: 0.9em;
-  margin-top: 20px;
-  border-top: 1px solid var(--el-border-color);
-  padding-top: 10px;
-}
-
-.markdown-preview :deep(.footnote-ref) {
-  font-size: 0.8em;
-  vertical-align: super;
-  text-decoration: none;
-}
-
-.markdown-preview :deep(.footnote-backref) {
-  font-size: 0.8em;
-  text-decoration: none;
-}
-
-.empty-note {
-  color: var(--el-text-color-placeholder);
-  font-style: italic;
-  text-align: center;
-  padding: 20px;
 }
 
 .editor-actions {
@@ -606,5 +531,38 @@ el-icon {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
+}
+
+:deep(.wiktionary-iframe iframe) {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* 移动端 (≤768px) */
+@media (max-width: 768px) {
+  .meaning-container {
+    min-height: 350px;
+    max-height: 500px;
+    padding: 15px;
+  }
+
+  .word {
+    font-size: 36px;
+  }
+}
+
+/* 桌面端 (≥1024px) */
+@media (min-width: 1024px) {
+  .meaning-container {
+    max-height: 700px;
+  }
+}
+
+/* 大桌面端 (≥1200px) */
+@media (min-width: 1200px) {
+  .meaning-container {
+    max-height: 800px;
+  }
 }
 </style>

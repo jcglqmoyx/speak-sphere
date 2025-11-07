@@ -3,11 +3,11 @@
     <div class="query-container">
       <div class="search-section">
         <el-input
-          v-model="searchWord"
-          placeholder="输入要查询的单词"
-          size="large"
-          @keyup.enter="handleSearch"
-          class="search-input"
+            v-model="searchWord"
+            placeholder="输入要查询的单词"
+            size="large"
+            @keyup.enter="handleSearch"
+            class="search-input"
         >
           <template #append>
             <el-button @click="handleSearch" :icon="Search">搜索</el-button>
@@ -15,7 +15,7 @@
         </el-input>
       </div>
 
-    <div v-if="showResults" class="results-section">
+      <div v-if="showResults" class="results-section">
         <el-card class="word-card">
           <template #header>
             <div class="card-header">
@@ -23,12 +23,16 @@
               <div class="header-actions">
                 <el-tooltip content="收藏单词" placement="top">
                   <el-button circle @click="handleAddToBook" :disabled="!searchWord.trim()" class="favorite-btn">
-                    <el-icon><Star /></el-icon>
+                    <el-icon>
+                      <Star/>
+                    </el-icon>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip content="搜索词典 (快捷键: S)" placement="top">
                   <el-button circle @click="showSearchDrawer = !showSearchDrawer">
-                    <el-icon><Search /></el-icon>
+                    <el-icon>
+                      <Search/>
+                    </el-icon>
                   </el-button>
                 </el-tooltip>
               </div>
@@ -37,7 +41,7 @@
 
           <div class="word-content" @click="handleWordContentClick">
             <div v-if="isLoading" class="loading-container">
-              <el-skeleton :rows="5" animated />
+              <el-skeleton :rows="5" animated/>
             </div>
             <div v-else-if="wordMeaning" class="meaning" v-html="wordMeaning"></div>
             <div v-else class="no-meaning">该单词暂无释义</div>
@@ -66,7 +70,7 @@
           <a :href="dictionary.prefix + (currentWord || '') + (dictionary.suffix || '')" target="_blank">
             <strong>{{ index + 1 }}. {{ dictionary.title }}</strong>
           </a>
-          <el-divider />
+          <el-divider/>
         </p>
       </div>
     </el-drawer>
@@ -91,11 +95,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showAddToBookDialog = false">取消</el-button>
-          <el-button 
-            type="primary" 
-            @click="confirmAddToBook" 
-            :disabled="!selectedBookId"
-            :class="{ 'warning-btn': selectedBookId && isWordInSelectedBook() }"
+          <el-button
+              type="primary"
+              @click="confirmAddToBook"
+              :disabled="!selectedBookId"
+              :class="{ 'warning-btn': selectedBookId && isWordInSelectedBook() }"
           >
             {{ selectedBookId && isWordInSelectedBook() ? '无需重复添加' : '确认添加' }}
           </el-button>
@@ -106,15 +110,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { ElButton, ElCard, ElDialog, ElDivider, ElDrawer, ElForm, ElFormItem, ElIcon, ElInput, ElMessage, ElRadio, ElRadioGroup, ElTag, ElTooltip } from 'element-plus';
-import { Search, Star } from '@element-plus/icons-vue';
+import {onMounted, ref} from 'vue';
+import {
+  ElButton,
+  ElCard,
+  ElDialog,
+  ElDivider,
+  ElDrawer,
+  ElForm,
+  ElFormItem,
+  ElIcon,
+  ElInput,
+  ElMessage,
+  ElRadio,
+  ElRadioGroup,
+  ElTag,
+  ElTooltip
+} from 'element-plus';
+import {Search, Star} from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
-import { getDictionaryList } from '@/assets/js/module/dictionary/query';
-import { getBookList } from '@/assets/js/module/book/query';
-import { AddEntry } from '@/assets/js/module/entry/add';
-import { checkWordInBook } from '@/assets/js/module/entry/query';
-import { getWordDefinition, formatDefinition } from '@/assets/js/util/dictionary_api';
+import {getDictionaryList} from '@/assets/js/module/dictionary/query';
+import {getBookList} from '@/assets/js/module/book/query';
+import {AddEntry} from '@/assets/js/module/entry/add';
+import {checkWordInBook} from '@/assets/js/module/entry/query';
+import {formatDefinition, getWordDefinition} from '@/assets/js/util/dictionary_api';
 
 const searchWord = ref('');
 const currentWord = ref('');
@@ -162,7 +181,7 @@ const handleSearch = async () => {
 
     try {
       const result = await getWordDefinition(currentWord.value);
-      
+
       if (result.success) {
         wordMeaning.value = formatDefinition(result);
       } else {
@@ -179,7 +198,7 @@ const handleSearch = async () => {
 
 const handleKeydown = (event) => {
   if (showEditNoteDrawer.value) return;
-  
+
   if (event.key === 'Enter') {
     handleSearch();
   } else if (event.key === 's' || event.key === 'S') {
@@ -200,21 +219,21 @@ const handleAddToBook = async () => {
   if (!searchWord.value.trim()) {
     return;
   }
-  
+
   selectedBookId.value = null;
   bookWordExistsMap.value = {}; // 清空之前的记录
   showAddToBookDialog.value = true;
-  
+
   // 检查每个词书是否已包含当前单词
   if (books.value.length > 0) {
     const word = searchWord.value.trim();
-    
+
     for (const book of books.value) {
       try {
         const response = await checkWordInBook(word, book.id);
         const exists = response && response.code === 0 && response.data.exists;
         bookWordExistsMap.value[book.id] = exists;
-        
+
         if (exists && !selectedBookId.value) {
           selectedBookId.value = book.id;
         }
@@ -240,10 +259,10 @@ const confirmAddToBook = async () => {
 
   try {
     const response = await AddEntry(
-      selectedBookId.value,
-      searchWord.value.trim(),
-      wordMeaning.value || '暂无释义', // 使用当前显示的释义，如果没有则使用默认值
-      ''
+        selectedBookId.value,
+        searchWord.value.trim(),
+        wordMeaning.value || '暂无释义', // 使用当前显示的释义，如果没有则使用默认值
+        ''
     );
 
     if (response && response.code === 0) {
@@ -293,32 +312,6 @@ const playAudio = (audioUrl) => {
   max-width: 100%;
 }
 
-/* 搜索栏按钮样式 */
-:deep(.el-input-group__append) {
-  display: flex;
-  gap: 0;
-}
-
-:deep(.el-input-group__append .el-button) {
-  border-radius: 0;
-  margin: 0;
-}
-
-:deep(.el-input-group__append .el-button:first-child) {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right: 1px solid var(--el-border-color);
-}
-
-:deep(.el-input-group__append .el-button:last-child) {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top-right-radius: var(--el-border-radius-base);
-  border-bottom-right-radius: var(--el-border-radius-base);
-}
-
 .results-section {
   margin-top: 20px;
 }
@@ -360,55 +353,35 @@ const playAudio = (audioUrl) => {
   padding: 20px 0;
 }
 
-/* ===== 响应式断点设置 ===== */
-
 /* 平板端 - 768px 及以上 */
 @media (min-width: 768px) {
   .query-container {
     max-width: 90%;
     padding: 30px;
   }
-  
+
   .search-input {
     width: 80%;
   }
-  
+
   .welcome-card,
   .word-card {
     width: 80%;
     max-width: 80%;
     margin: 0 auto;
   }
-  
+
   .word-title {
     font-size: 28px;
   }
-  
+
   :deep(.meaning) {
     font-size: 16px;
     line-height: 1.8;
   }
-  
+
   :deep(.meaning .word-title) {
     font-size: 40px;
-  }
-  
-  :deep(.meaning .phonetic) {
-    font-size: 20px;
-    margin-bottom: 25px;
-  }
-  
-  :deep(.meaning .part-of-speech) {
-    font-size: 22px;
-    margin: 20px 0 15px 0;
-  }
-  
-  :deep(.meaning .example) {
-    font-size: 15px;
-  }
-  
-  :deep(.meaning .definition-text) {
-    font-size: 16px;
   }
 }
 
@@ -418,81 +391,35 @@ const playAudio = (audioUrl) => {
     max-width: 1200px;
     padding: 40px;
   }
-  
+
   .search-input {
     width: 70%;
     max-width: 800px;
   }
-  
+
   .welcome-card,
   .word-card {
     width: 70%;
     max-width: 70%;
     margin: 0 auto;
   }
-  
+
   .word-title {
     font-size: 32px;
   }
-  
+
   .header-actions {
     gap: 15px;
   }
-  
+
   :deep(.meaning) {
     font-size: 18px;
     line-height: 1.8;
   }
-  
+
   :deep(.meaning .word-title) {
     font-size: 48px;
     margin-bottom: 15px;
-  }
-  
-  :deep(.meaning .phonetic) {
-    font-size: 24px;
-    margin-bottom: 30px;
-  }
-  
-  :deep(.meaning .part-of-speech) {
-    font-size: 26px;
-    margin: 25px 0 20px 0;
-  }
-  
-  :deep(.meaning .definitions-list) {
-    margin-left: 20px;
-  }
-  
-  :deep(.meaning .definition-item) {
-    margin: 12px 0;
-    padding-left: 10px;
-  }
-  
-  :deep(.meaning .definition-number) {
-    font-size: 18px;
-  }
-  
-  :deep(.meaning .definition-text) {
-    font-size: 18px;
-  }
-  
-  :deep(.meaning .example) {
-    font-size: 18px;
-    padding-left: 25px;
-    margin: 8px 0;
-  }
-  
-  :deep(.meaning .synonyms),
-  :deep(.meaning .meaning-synonyms),
-  :deep(.meaning .meaning-antonyms) {
-    font-size: 18px;
-    padding-left: 25px;
-    margin: 5px 0;
-  }
-  
-  :deep(.meaning .audio-btn) {
-    font-size: 14px;
-    padding: 4px 12px;
   }
 }
 
@@ -507,154 +434,20 @@ const playAudio = (audioUrl) => {
   margin-bottom: 10px;
 }
 
-:deep(.meaning .phonetic) {
-  color: var(--el-text-color-secondary);
-  font-family: 'Courier New', monospace;
-}
-
-:deep(.meaning .audio-buttons) {
-  display: inline-flex;
-  gap: 8px;
-  margin-left: 10px;
-}
-
-:deep(.meaning .audio-btn) {
-  background: var(--el-color-primary);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-:deep(.meaning .audio-btn:hover) {
-  background: var(--el-color-primary-light-3);
-}
-
-:deep(.meaning .audio-btn:active) {
-  background: var(--el-color-primary-dark-2);
-}
-
-:deep(.meaning .meanings-container) {
-  margin-top: 10px;
-}
-
-:deep(.meaning .part-of-speech) {
-  font-weight: bold;
-  color: var(--el-color-primary);
-}
-
-:deep(.meaning .definitions-list) {
-  margin-left: 10px;
-}
-
-:deep(.meaning .definition-item) {
-  margin: 8px 0;
-  padding-left: 5px;
-}
-
-:deep(.meaning .definition-number) {
-  font-weight: bold;
-  color: var(--el-color-primary);
-  margin-right: 5px;
-}
-
-:deep(.meaning .definition-text) {
-  color: var(--el-text-color-regular);
-}
-
-:deep(.meaning .example) {
-  padding-left: 20px;
-  margin: 5px 0;
-  color: var(--el-text-color-secondary);
-  font-style: italic;
-}
-
-:deep(.meaning .synonyms),
-:deep(.meaning .meaning-synonyms),
-:deep(.meaning .meaning-antonyms) {
-  padding-left: 20px;
-  margin: 3px 0;
-  color: var(--el-color-success);
-  font-size: 18px;
-}
-
-:deep(.meaning .meaning-antonyms) {
-    color: var(--el-color-danger);
-}
-
-:deep(.meaning .meaning-separator) {
-    height: 1px;
-    background: var(--el-border-color);
-    margin: 15px 0;
-}
-
-/* Wiktionary iframe 样式 */
-:deep(.wiktionary-container) {
-    margin: 10px 0;
-    position: relative;
-}
-
-:deep(.wiktionary-notice) {
-    background-color: var(--el-color-warning-light-9);
-    border: 1px solid var(--el-color-warning-light-5);
-    border-radius: 4px;
-    padding: 8px 12px;
-    margin-bottom: 10px;
-    color: var(--el-color-warning-dark-2);
-    font-size: 14px;
-    text-align: center;
-}
-
-:deep(.wiktionary-loading) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background-color: var(--el-bg-color);
-    border: 1px solid var(--el-border-color);
-    border-radius: 4px;
-    min-height: 300px;
-    color: var(--el-text-color-secondary);
-}
-
-:deep(.loading-spinner) {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--el-border-color-lighter);
-    border-left: 4px solid var(--el-color-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-:deep(.wiktionary-iframe) {
-    width: 100%;
-    height: 600px;
-    border: 1px solid var(--el-border-color);
-    border-radius: 4px;
-    background-color: white;
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 响应式 iframe 高度调整 */
 @media (max-width: 768px) {
-    :deep(.wiktionary-iframe) {
-        height: 400px;
-    }
 }
 
 @media (min-width: 1024px) {
-    :deep(.wiktionary-iframe) {
-        height: 800px;
-    }
 }
 
 .no-meaning {
@@ -673,33 +466,6 @@ const playAudio = (audioUrl) => {
 
 .dictionary-item {
   margin: 10px 0;
-}
-
-.note-editor {
-  height: calc(100vh - 60px);
-  display: flex;
-  flex-direction: column;
-}
-
-:deep(.el-tabs__content) {
-  flex: 1;
-  overflow-y: auto;
-}
-
-:deep(.el-textarea__inner) {
-  height: 100%;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-}
-
-.markdown-preview {
-  height: 100%;
-  overflow-y: auto;
-  padding: 10px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  background-color: var(--el-bg-color);
-  color: var(--el-text-color-primary);
 }
 
 .markdown-preview :deep(h1) {
@@ -801,23 +567,6 @@ const playAudio = (audioUrl) => {
   text-decoration: underline;
 }
 
-.empty-note {
-  color: var(--el-text-color-placeholder);
-  font-style: italic;
-  text-align: center;
-  padding: 20px;
-}
-
-.editor-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.favorite-btn {
-  /* 移除自定义样式，使用与其他按钮一致的默认样式 */
-}
 
 .favorite-btn:disabled {
   background-color: #f5f5f5;
@@ -843,15 +592,6 @@ const playAudio = (audioUrl) => {
 .book-radio:hover {
   border-color: var(--el-color-primary);
   background-color: var(--el-fill-color-lighter);
-}
-
-:deep(.el-radio__input.is-checked + .el-radio__label) {
-  color: var(--el-color-primary);
-}
-
-:deep(.el-radio__input.is-checked .el-radio__inner) {
-  background-color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
 }
 
 .dialog-title {

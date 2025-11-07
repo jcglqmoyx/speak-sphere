@@ -31,20 +31,18 @@ async function getWordDefinition(word) {
         }
 
         const data = await response.json();
-        
+
         // 检查是否返回有效数据
         if (!data || !Array.isArray(data) || data.length === 0 || !data[0].word) {
             throw new Error('Empty or invalid data returned from dictionary API');
         }
 
         return {
-            success: true,
-            data: data,
-            source: 'dictionaryapi'
+            success: true, data: data, source: 'dictionaryapi'
         };
     } catch (error) {
         console.error('Error fetching word definition from dictionaryapi.dev:', error);
-        
+
         // 返回wiktionary作为备用方案
         return {
             success: true, // 仍然返回success=true，因为wiktionary是有效的备选方案
@@ -181,4 +179,4 @@ function formatDefinition(apiResponse) {
     return formattedHtml || '<div class="no-meaning">No definition found</div>';
 }
 
-export { getWordDefinition, formatDefinition };
+export {getWordDefinition, formatDefinition};
