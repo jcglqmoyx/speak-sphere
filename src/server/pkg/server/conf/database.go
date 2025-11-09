@@ -21,6 +21,8 @@ func InitDatabase(cfg *DBConfig) {
 	err = DB.AutoMigrate(&model.Entry{})
 	err = DB.AutoMigrate(&model.Dictionary{})
 	err = DB.AutoMigrate(&model.User{})
+	err = DB.AutoMigrate(&model.LLMService{})
+	err = DB.AutoMigrate(&model.AIPrompt{})
 	if err != nil {
 		println("Error occurred when opening database file")
 	}

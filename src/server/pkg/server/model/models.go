@@ -44,6 +44,34 @@ type Entry struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`
 }
 
+type LLMService struct {
+	ID          int            `gorm:"primaryKey" json:"id" form:"id"`
+	Name        string         `gorm:"column:name" json:"name" form:"name"`
+	Provider    string         `gorm:"column:provider" form:"provider" json:"provider"`
+	Endpoint    string         `gorm:"column:endpoint" form:"endpoint" json:"endpoint,omitempty"`
+	Model       string         `gorm:"column:model" form:"model" json:"model,omitempty"`
+	APIKey      string         `gorm:"column:api_key" form:"api_key" json:"api_key,omitempty"`
+	IsDefault   bool           `gorm:"column:is_default;default:false" json:"is_default"`
+	Description string         `gorm:"column:description" json:"description"`
+	UserID      int            `gorm:"column:user_id" form:"user_id" json:"user_id"`
+	CreatedAt   time.Time      `json:"created_at" form:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at" form:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`
+}
+
+// AIPrompt AI提示词管理
+type AIPrompt struct {
+	ID          int            `gorm:"primaryKey" json:"id" form:"id"`
+	Name        string         `gorm:"column:name" json:"name" form:"name"`                          // 提示词名称
+	Content     string         `gorm:"column:content;type:text" json:"content" form:"content"`       // 提示词内容
+	Description string         `gorm:"column:description" json:"description" form:"description"`      // 提示词描述
+	IsDefault   bool           `gorm:"column:is_default;default:false" json:"is_default"`            // 是否默认提示词
+	UserID      int            `gorm:"column:user_id" form:"user_id" json:"user_id"`                 // 用户ID，0表示系统默认
+	CreatedAt   time.Time      `json:"created_at" form:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at" form:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`
+}
+
 type User struct {
 	ID                     int            `gorm:"primaryKey" json:"id" form:"id"`
 	Username               string         `gorm:"column:username;unique" form:"username" json:"username,omitempty"`
@@ -57,9 +85,6 @@ type User struct {
 	DailyCount             int            `gorm:"daily_count;default:10" form:"daily_count" json:"daily_count"`
 	TimesCountedAsKnown    int            `gorm:"times_counted_as_known;default:2" form:"times_counted_as_known" json:"times_counted_as_known"`
 	ReviewFrequencyFormula string         `gorm:"column:review_frequency_formula;default:'2_4_8_16_32_64_128_256_512_'" form:"review_frequency_formula" json:"review_frequency_formula"`
-	LLMServiceProvider     string         `gorm:"column:llm_service_provider" form:"llm_service_provider" json:"llm_service_provider,omitempty"`
-	LLMToken               string         `gorm:"column:llm_token" form:"llm_token" json:"llm_token,omitempty"`
-	LLMModel               string         `gorm:"column:llm_model" form:"llm_model" json:"llm_model,omitempty"`
 	CreatedAt              time.Time      `json:"created_at" form:"created_at"`
 	UpdatedAt              time.Time      `json:"updated_at" form:"updated_at"`
 	DeletedAt              gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`

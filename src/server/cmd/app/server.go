@@ -47,6 +47,8 @@ func Run() {
 	router.RegisterEntryRouter(r)
 	router.RegisterDictionaryRouter(r)
 	router.RegisterUserRouter(r)
+	router.RegisterLLMServiceRouter(r)
+	router.RegisterAIPromptRouter(r)
 
 	if err := r.Run(fmt.Sprintf(":%d", conf.Cfg.Server.Port)); err != nil {
 		log.Fatalf("启动服务失败: %v", err)

@@ -21,8 +21,14 @@
       <router-link :to="{ name: 'dictionary_setting' }">
         <el-menu-item index="2-2">词典设置</el-menu-item>
       </router-link>
+      <router-link :to="{ name: 'llm_setting' }">
+        <el-menu-item index="2-3">LLM服务设置</el-menu-item>
+      </router-link>
+      <router-link :to="{ name: 'aiprompt_setting' }">
+        <el-menu-item index="2-4">AI提示词设置</el-menu-item>
+      </router-link>
       <router-link :to="{ name: 'user_setting' }">
-        <el-menu-item index="2-3">用户设置</el-menu-item>
+        <el-menu-item index="2-5">用户设置</el-menu-item>
       </router-link>
     </el-sub-menu>
     <el-sub-menu index="3">

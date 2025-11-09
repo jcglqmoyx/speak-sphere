@@ -1,6 +1,8 @@
 import BookSettingView from "@/views/book/BookSettingView.vue";
 import WordSettingView from "@/views/word/WordSettingView.vue";
 import DictionarySettingView from "@/views/dictionary/DictionarySettingView.vue";
+import LLMServiceSettingView from "@/views/llm/LLMServiceSettingView.vue";
+import AIPromptSettingView from "@/views/aiprompt/AIPromptSettingView.vue";
 import UserSettingView from "@/views/user/UserSettingView.vue";
 
 const SettingRoutes = [
@@ -27,6 +29,16 @@ const SettingRoutes = [
                 path: 'dictionary',
                 name: 'dictionary_setting',
                 component: DictionarySettingView,
+            },
+            {
+                path: 'llm',
+                name: 'llm_setting',
+                component: LLMServiceSettingView,
+            },
+            {
+                path: 'aiprompt',
+                name: 'aiprompt_setting',
+                component: AIPromptSettingView,
             },
             {
                 path: 'user',

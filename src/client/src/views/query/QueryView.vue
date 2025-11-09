@@ -21,6 +21,13 @@
             <div class="card-header">
               <span class="word-title">{{ currentWord }}</span>
               <div class="header-actions">
+                <el-tooltip content="使用LLM搜索单词" placement="top">
+                  <el-button circle @click="toggleLLMPanel">
+                    <el-icon>
+                      <ChatDotRound/>
+                    </el-icon>
+                  </el-button>
+                </el-tooltip>
                 <el-tooltip content="收藏单词" placement="top">
                   <el-button circle @click="handleAddToBook" :disabled="!searchWord.trim()" class="favorite-btn">
                     <el-icon>
@@ -106,6 +113,13 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- LLM查询面板 -->
+    <LLMQueryPanel
+        v-if="showLLMPanel"
+        :current-word="currentWord"
+        @close="showLLMPanel = false"
+    />
   </ContentBase>
 </template>
 
@@ -127,8 +141,9 @@ import {
   ElTag,
   ElTooltip
 } from 'element-plus';
-import {Search, Star} from '@element-plus/icons-vue';
+import {ChatDotRound, Search, Star} from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
+import LLMQueryPanel from '@/components/LLMQueryPanel.vue';
 import {getDictionaryList} from '@/assets/js/module/dictionary/query';
 import {getBookList} from '@/assets/js/module/book/query';
 import {AddEntry} from '@/assets/js/module/entry/add';
@@ -143,6 +158,7 @@ const showResults = ref(false);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const showAddToBookDialog = ref(false);
+const showLLMPanel = ref(false);
 const dictionaries = ref([]);
 const books = ref([]);
 const selectedBookId = ref(null);
@@ -275,6 +291,13 @@ const confirmAddToBook = async () => {
   } catch (error) {
     console.error('添加单词失败:', error);
     ElMessage.error('添加单词失败，请重试');
+  }
+};
+
+// 切换LLM查询面板
+const toggleLLMPanel = () => {
+  if (showResults.value && currentWord.value) {
+    showLLMPanel.value = !showLLMPanel.value;
   }
 };
 
@@ -440,6 +463,63 @@ const playAudio = (audioUrl) => {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Wiktionary iframe 样式 */
+:deep(.wiktionary-container) {
+  width: 100%;
+  height: 400px;
+  margin-top: 10px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:deep(.wiktionary-notice) {
+  background-color: var(--el-color-warning-light-8);
+  color: var(--el-color-warning-dark-2);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+:deep(.wiktionary-loading) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  color: var(--el-text-color-secondary);
+  gap: 10px;
+}
+
+:deep(.wiktionary-loading .loading-spinner) {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--el-border-color-light);
+  border-top: 3px solid var(--el-color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+:deep(.wiktionary-iframe) {
+  width: 100%;
+  height: calc(100% - 40px);
+  border: none;
+}
+
+/* 响应式调整 */
+@media (min-width: 768px) {
+  :deep(.wiktionary-container) {
+    height: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :deep(.wiktionary-container) {
+    height: 600px;
   }
 }
 

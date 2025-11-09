@@ -65,3 +65,31 @@ func RegisterUserRouter(route *gin.Engine) {
 
 	r.GET("/profile", controller.GetUserProfile)
 }
+
+func RegisterLLMServiceRouter(route *gin.Engine) {
+  r := route.Group("/llm")
+
+  r.POST("/add", controller.AddLLMService)
+
+  r.DELETE("/delete/:id", controller.DeleteLLMService)
+
+  r.PUT("/update/:id", controller.UpdateLLMService)
+
+  r.GET("/list", controller.GetLLMServices)
+  r.GET("/default", controller.GetDefaultLLMService)
+  r.GET("/:id", controller.GetLLMServiceByID)
+}
+
+func RegisterAIPromptRouter(route *gin.Engine) {
+  r := route.Group("/aiprompt")
+
+  r.POST("/add", controller.AddAIPrompt)
+
+  r.DELETE("/delete/:id", controller.DeleteAIPrompt)
+
+  r.PUT("/update/:id", controller.UpdateAIPrompt)
+
+  r.GET("/list", controller.GetAIPrompts)
+  r.GET("/default", controller.GetDefaultAIPrompt)
+  r.GET("/:id", controller.GetAIPromptByID)
+}

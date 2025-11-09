@@ -4,6 +4,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <div v-if="dataStatus === 1" class="word-card">
       <div class="header">
+        <el-tooltip content="使用LLM搜索单词" placement="top">
+          <el-button v-if="showHeader" class="centered-button" circle @click="toggleLLMPanel">
+            <el-icon>
+              <ChatDotRound/>
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+        &nbsp;
         <el-tooltip content="搜索单词 (快捷键: S)" placement="top">
           <el-button v-if="showHeader" class="centered-button" circle @click="showSearchDrawer = !showSearchDrawer">
             <el-icon>
@@ -97,12 +105,20 @@
       </div>
     </div>
   </el-drawer>
+
+  <!-- LLM查询面板 -->
+  <LLMQueryPanel
+      v-if="showLLMPanel"
+      :current-word="getCurrentWord()"
+      @close="showLLMPanel = false"
+  />
 </template>
 
 <script setup>
 import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTabPane, ElTabs, ElTooltip} from 'element-plus';
-import {Delete, EditPen, Search} from "@element-plus/icons-vue";
+import {ChatDotRound, Delete, EditPen, Search} from "@element-plus/icons-vue";
 import ContentBase from "@/components/ContentBase.vue";
+import LLMQueryPanel from "@/components/LLMQueryPanel.vue";
 import MarkdownIt from 'markdown-it';
 
 import {useStore} from "vuex";
@@ -139,6 +155,7 @@ const dataStatus = ref(2);
 const showHeader = ref(true);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
+const showLLMPanel = ref(false);
 const activeTab = ref('edit');
 const isFetchingDefinition = ref(false);
 
@@ -185,6 +202,18 @@ let idx = ref(0);
 let countRecognitionTime = {};
 const timesCountedAsKnown = ref(0);
 
+// 获取当前单词
+const getCurrentWord = () => {
+  if (words.length > 0 && idx.value < words.length) {
+    return words[idx.value].word || '';
+  }
+  return '';
+}
+
+const toggleLLMPanel = () => {
+  showLLMPanel.value = !showLLMPanel.value;
+}
+
 /*
  * 1: 刚开始的页面
  * 2: 选择了认识
@@ -225,7 +254,7 @@ onMounted(
 
       // 初始化词典查询
       if (dataStatus.value === 1 && words.length > 0) {
-        checkAndFetchDefinition();
+        await checkAndFetchDefinition();
       }
     }
 );
@@ -356,7 +385,7 @@ const showNextWord = async () => {
     idx.value = tempIdx;
 
     // 在切换单词后检查是否需要查询释义
-    checkAndFetchDefinition();
+    await checkAndFetchDefinition();
   }
 }
 
@@ -533,10 +562,60 @@ const playAudio = (audioUrl) => {
   margin-top: 10px;
 }
 
-:deep(.wiktionary-iframe iframe) {
+:deep(.wiktionary-container) {
   width: 100%;
+  height: 400px;
+  margin-top: 10px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:deep(.wiktionary-notice) {
+  background-color: var(--el-color-warning-light-8);
+  color: var(--el-color-warning-dark-2);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+:deep(.wiktionary-loading) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100%;
+  flex-direction: column;
+  color: var(--el-text-color-secondary);
+  gap: 10px;
+}
+
+:deep(.wiktionary-loading .loading-spinner) {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--el-border-color-light);
+  border-top: 3px solid var(--el-color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+:deep(.wiktionary-iframe) {
+  width: 100%;
+  height: calc(100% - 40px);
   border: none;
+}
+
+/* 响应式调整 */
+@media (min-width: 768px) {
+  :deep(.wiktionary-container) {
+    height: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :deep(.wiktionary-container) {
+    height: 600px;
+  }
 }
 
 /* 移动端 (≤768px) */
@@ -563,6 +642,15 @@ const playAudio = (audioUrl) => {
 @media (min-width: 1200px) {
   .meaning-container {
     max-height: 800px;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

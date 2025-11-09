@@ -7,7 +7,6 @@ import (
 	"speak-sphere/pkg/server/model"
 	"speak-sphere/pkg/server/util"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -179,37 +178,6 @@ func UpdateUser(c *gin.Context) {
 		}
 	}
 
-	// Validate LLM parameters if provided
-	if llmServiceProvider, exists := updateData["llm_service_provider"]; exists {
-		if provider, ok := llmServiceProvider.(string); ok {
-			// Basic URL validation
-			if len(provider) < 8 || len(provider) > 255 {
-				util.JsonHttpResponse(c, 1, "LLM服务提供商的URL长度应在8-255字符之间", nil)
-				return
-			}
-			if strings.Contains(provider, " ") {
-				util.JsonHttpResponse(c, 1, "LLM服务提供商URL不能包含空格", nil)
-				return
-			}
-		}
-	}
-
-	if llmToken, exists := updateData["llm_token"]; exists {
-		if token, ok := llmToken.(string); ok && len(token) < 10 {
-			util.JsonHttpResponse(c, 1, "LLM token长度过短", nil)
-			return
-		}
-	}
-
-	if llmModel, exists := updateData["llm_model"]; exists {
-		if mdl, ok := llmModel.(string); ok {
-			if len(mdl) < 3 || len(mdl) > 50 {
-				util.JsonHttpResponse(c, 1, "LLM model名称长度应在3-50字符之间", nil)
-				return
-			}
-		}
-	}
-
 	// 只更新需要的字段，避免清空密码等敏感信息
 	updateData["id"] = userID
 	dao.UpdateUserWithMap(updateData)
@@ -235,9 +203,6 @@ func GetUserProfile(c *gin.Context) {
 			DailyCount:             user.DailyCount,
 			TimesCountedAsKnown:    user.TimesCountedAsKnown,
 			ReviewFrequencyFormula: user.ReviewFrequencyFormula,
-			LLMServiceProvider:     user.LLMServiceProvider,
-			LLMToken:               user.LLMToken,
-			LLMModel:               user.LLMModel,
 		}
 		util.JsonHttpResponse(c, 0, "success", userInfo)
 	} else {
