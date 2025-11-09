@@ -73,12 +73,26 @@
     <!-- Search Drawer 必须置于ContentBase中，如果不放在ContentBase中，则按下s键（搜索单词）后，ContentBase将失去焦点，再次按快捷键将无效 -->
     <el-drawer v-model="showSearchDrawer" title="搜索" :with-header="true">
       <p v-for="(dictionary, index) in dictionaries" :key="dictionary.id">
-        <a :href="dictionary.prefix + words[idx].word + (dictionary.suffix || '') " target="_blank">
+        <a href="#" @click.prevent="handleDictionaryClick(dictionary)" :class="{'wiktionary-link': dictionary.title.toLowerCase().includes('wiktionary')}">
           <b>{{ index + 1 }}. {{ dictionary.title }}</b>
         </a>
         <el-divider/>
       </p>
     </el-drawer>
+
+    <!-- 全屏Wiktionary模态框 -->
+    <div v-if="showWiktionaryFullscreen" class="wiktionary-fullscreen-modal">
+      <div class="wiktionary-fullscreen-content">
+        <button class="close-fullscreen-btn" @click="showWiktionaryFullscreen = false">
+          <el-icon><Close /></el-icon>
+        </button>
+        <iframe 
+          :src="currentWiktionaryUrl" 
+          class="wiktionary-fullscreen-iframe"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
   </ContentBase>
 
   <el-drawer v-model="showEditNoteDrawer" title="笔记 (支持Markdown语法)" :with-header="true" size="50%">
@@ -116,7 +130,7 @@
 
 <script setup>
 import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTabPane, ElTabs, ElTooltip} from 'element-plus';
-import {ChatDotRound, Delete, EditPen, Search} from "@element-plus/icons-vue";
+import {ChatDotRound, Close, Delete, EditPen, Search} from "@element-plus/icons-vue";
 import ContentBase from "@/components/ContentBase.vue";
 import LLMQueryPanel from "@/components/LLMQueryPanel.vue";
 import MarkdownIt from 'markdown-it';
@@ -156,6 +170,8 @@ const showHeader = ref(true);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const showLLMPanel = ref(false);
+const showWiktionaryFullscreen = ref(false);
+const currentWiktionaryUrl = ref('');
 const activeTab = ref('edit');
 const isFetchingDefinition = ref(false);
 
@@ -213,6 +229,30 @@ const getCurrentWord = () => {
 const toggleLLMPanel = () => {
   showLLMPanel.value = !showLLMPanel.value;
 }
+
+// 处理词典点击事件
+const handleDictionaryClick = (dictionary) => {
+  const url = dictionary.prefix + words.value[idx].word + (dictionary.suffix || '');
+  
+  // 如果是Wiktionary并且在移动端，使用全屏模态框
+  const isWiktionary = dictionary.title.toLowerCase().includes('wiktionary');
+  const isMobile = window.innerWidth <= 768;
+  
+  if (isWiktionary && isMobile) {
+    currentWiktionaryUrl.value = url;
+    showWiktionaryFullscreen.value = true;
+    showSearchDrawer.value = false; // 关闭抽屉
+  } else {
+    // 非移动端或非Wiktionary，在新标签页打开
+    window.open(url, '_blank');
+  }
+}
+
+// 全局函数：打开全屏Wiktionary
+window.openWiktionaryFullscreen = (url) => {
+  showWiktionaryFullscreen.value = true;
+  currentWiktionaryUrl.value = url;
+};
 
 /*
  * 1: 刚开始的页面
@@ -606,6 +646,29 @@ const playAudio = (audioUrl) => {
 }
 
 /* 响应式调整 */
+
+/* 移动端Wiktionary适配 */
+@media (max-width: 768px) {
+  :deep(.wiktionary-container) {
+    height: 300px;
+  }
+  
+  /* 为Wiktionary iframe添加移动端优化 */
+  :deep(.wiktionary-container iframe) {
+    width: 100%;
+    height: 100%;
+    border: none;
+    -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
+  }
+}
+
+/* 小屏手机Wiktionary适配 */
+@media (max-width: 480px) {
+  :deep(.wiktionary-container) {
+    height: 250px;
+  }
+}
+
 @media (min-width: 768px) {
   :deep(.wiktionary-container) {
     height: 500px;
@@ -651,6 +714,97 @@ const playAudio = (audioUrl) => {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* 全屏Wiktionary模态框样式 */
+.wiktionary-fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wiktionary-fullscreen-content {
+  position: relative;
+  width: 95%;
+  height: 95%;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.close-fullscreen-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: var(--el-color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.close-fullscreen-btn:hover {
+  background: var(--el-color-primary-light-3);
+  transform: scale(1.1);
+}
+
+.wiktionary-fullscreen-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 平板端适配 */
+@media (max-width: 1024px) {
+  .wiktionary-fullscreen-content {
+    width: 98%;
+    height: 98%;
+    border-radius: 6px;
+  }
+  
+  .close-fullscreen-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .wiktionary-fullscreen-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  
+  .close-fullscreen-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    top: 10px;
+    right: 10px;
   }
 }
 </style>

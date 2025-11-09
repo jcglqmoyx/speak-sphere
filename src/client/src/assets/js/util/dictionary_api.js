@@ -59,29 +59,102 @@ async function getWordDefinition(word) {
  * @returns {string} 格式化后的释义HTML字符串
  */
 function formatDefinition(apiResponse) {
-    // 如果是wiktionary源，返回iframe嵌入的HTML
-    if (apiResponse.source === 'wiktionary') {
-        return `
-            <div class="wiktionary-container">
-                <div class="wiktionary-notice">
-                    当前使用 Wiktionary 作为备选词典源
-                </div>
-                <div class="wiktionary-loading" id="wiktionary-loading-${Date.now()}">
-                    <div class="loading-spinner"></div>
-                    <span>正在加载 Wiktionary 页面...</span>
-                </div>
-                <iframe 
-                    src="${apiResponse.wiktionaryUrl}" 
-                    class="wiktionary-iframe"
-                    title="Wiktionary - ${apiResponse.wiktionaryUrl.split('/').pop()}"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    referrerpolicy="no-referrer"
-                    onload="document.getElementById('wiktionary-loading-${Date.now()}').style.display='none'; this.style.display='block'"
-                    style="display:none"
-                ></iframe>
+  // 如果是wiktionary源，返回iframe嵌入的HTML
+  if (apiResponse.source === 'wiktionary') {
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // 移动端：显示链接而不是内嵌iframe
+      return `
+        <div class="wiktionary-mobile-notice">
+          <div class="wiktionary-mobile-content">
+            <div class="notice-title">使用 Wiktionary 查询</div>
+            <div class="notice-message">当前使用 Wiktionary 作为备选词典源</div>
+            <div class="action-buttons">
+              <button class="open-wiktionary-btn" onclick="openWiktionaryFullscreen('${apiResponse.wiktionaryUrl}')">
+                全屏打开 Wiktionary
+              </button>
+              <button class="open-new-tab-btn" onclick="window.open('${apiResponse.wiktionaryUrl}', '_blank')">
+                新标签页打开
+              </button>
             </div>
-        `;
+          </div>
+        </div>
+        <style>
+          .wiktionary-mobile-notice {
+            background: var(--el-bg-color);
+            border: 1px solid var(--el-border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+          }
+          .wiktionary-mobile-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+          }
+          .notice-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--el-text-color-primary);
+          }
+          .notice-message {
+            color: var(--el-text-color-regular);
+          }
+          .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+          }
+          .open-wiktionary-btn, .open-new-tab-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+          }
+          .open-wiktionary-btn {
+            background: var(--el-color-primary);
+            color: white;
+          }
+          .open-wiktionary-btn:hover {
+            background: var(--el-color-primary-light-3);
+          }
+          .open-new-tab-btn {
+            background: var(--el-fill-color-light);
+            color: var(--el-text-color-primary);
+            border: 1px solid var(--el-border-color);
+          }
+          .open-new-tab-btn:hover {
+            background: var(--el-fill-color);
+          }
+        </style>
+      `;
+    } else {
+      // 桌面端：保持原有的内嵌iframe
+      return `
+        <div class="wiktionary-container">
+          <div class="wiktionary-notice">
+            当前使用 Wiktionary 作为备选词典源
+          </div>
+          <div class="wiktionary-loading" id="wiktionary-loading-${Date.now()}">
+            <div class="loading-spinner"></div>
+            <span>正在加载 Wiktionary 页面...</span>
+          </div>
+          <iframe 
+            src="${apiResponse.wiktionaryUrl}" 
+            class="wiktionary-iframe"
+            title="Wiktionary - ${apiResponse.wiktionaryUrl.split('/').pop()}"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            referrerpolicy="no-referrer"
+            onload="document.getElementById('wiktionary-loading-${Date.now()}').style.display='none'; this.style.display='block'"
+            style="display:none"
+          ></iframe>
+        </div>
+      `;
     }
+  }
 
     // 原有的dictionaryapi.dev数据处理逻辑
     const apiData = apiResponse.data;

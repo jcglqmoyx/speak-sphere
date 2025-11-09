@@ -369,6 +369,90 @@ export default {
   flex-direction: column;
 }
 
+/* 平板端适配 */
+@media (max-width: 1024px) {
+  .custom-drawer {
+    width: 70%;
+    min-width: 400px;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .custom-drawer {
+    width: 90%;
+    min-width: unset;
+    max-width: 100vw;
+    right: 0;
+    left: 0;
+    margin: 0 auto;
+  }
+  
+  .drawer-header {
+    padding: 15px;
+  }
+  
+  .drawer-header h3 {
+    font-size: 18px;
+  }
+  
+  .drawer-content {
+    padding: 15px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .prompt-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .query-section {
+    flex-direction: column;
+  }
+  
+  .query-section .el-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .response-content {
+    min-height: 200px;
+    max-height: 300px;
+  }
+}
+
+/* 小屏手机适配 */
+@media (max-width: 480px) {
+  .custom-drawer {
+    width: 95%;
+    top: 10px;
+    bottom: 10px;
+    border-radius: 8px;
+  }
+  
+  .drawer-header {
+    padding: 12px;
+  }
+  
+  .drawer-content {
+    padding: 12px;
+  }
+  
+  .response-content {
+    min-height: 150px;
+    max-height: 250px;
+  }
+  
+  .prompt-textarea-native {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+}
+
 .drawer-header {
   display: flex;
   justify-content: space-between;

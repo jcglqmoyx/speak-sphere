@@ -74,13 +74,27 @@
     <el-drawer v-model="showSearchDrawer" title="词典搜索" :with-header="true">
       <div class="dictionary-list">
         <p v-for="(dictionary, index) in dictionaries" :key="dictionary.id" class="dictionary-item">
-          <a :href="dictionary.prefix + (currentWord || '') + (dictionary.suffix || '')" target="_blank">
+        <a href="#" @click.prevent="handleDictionaryClick(dictionary)" :class="{'wiktionary-link': dictionary.title.toLowerCase().includes('wiktionary')}">
             <strong>{{ index + 1 }}. {{ dictionary.title }}</strong>
           </a>
           <el-divider/>
         </p>
       </div>
     </el-drawer>
+
+    <!-- 全屏Wiktionary模态框 -->
+    <div v-if="showWiktionaryFullscreen" class="wiktionary-fullscreen-modal">
+      <div class="wiktionary-fullscreen-content">
+        <button class="close-fullscreen-btn" @click="showWiktionaryFullscreen = false">
+          <el-icon><Close /></el-icon>
+        </button>
+        <iframe 
+          :src="currentWiktionaryUrl" 
+          class="wiktionary-fullscreen-iframe"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
 
     <!-- 收藏单词对话框 -->
     <el-dialog v-model="showAddToBookDialog" title="收藏单词" width="500px">
@@ -141,7 +155,7 @@ import {
   ElTag,
   ElTooltip
 } from 'element-plus';
-import {ChatDotRound, Search, Star} from '@element-plus/icons-vue';
+import {ChatDotRound, Close, Search, Star} from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
 import LLMQueryPanel from '@/components/LLMQueryPanel.vue';
 import {getDictionaryList} from '@/assets/js/module/dictionary/query';
@@ -159,6 +173,8 @@ const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
 const showAddToBookDialog = ref(false);
 const showLLMPanel = ref(false);
+const showWiktionaryFullscreen = ref(false);
+const currentWiktionaryUrl = ref('');
 const dictionaries = ref([]);
 const books = ref([]);
 const selectedBookId = ref(null);
@@ -299,6 +315,30 @@ const toggleLLMPanel = () => {
   if (showResults.value && currentWord.value) {
     showLLMPanel.value = !showLLMPanel.value;
   }
+};
+
+// 处理词典点击事件
+const handleDictionaryClick = (dictionary) => {
+  const url = dictionary.prefix + (currentWord.value || '') + (dictionary.suffix || '');
+  
+  // 如果是Wiktionary并且在移动端，使用全屏模态框
+  const isWiktionary = dictionary.title.toLowerCase().includes('wiktionary');
+  const isMobile = window.innerWidth <= 768;
+  
+  if (isWiktionary && isMobile) {
+    currentWiktionaryUrl.value = url;
+    showWiktionaryFullscreen.value = true;
+    showSearchDrawer.value = false; // 关闭抽屉
+  } else {
+    // 非移动端或非Wiktionary，在新标签页打开
+    window.open(url, '_blank');
+  }
+};
+
+// 全局函数：打开全屏Wiktionary
+window.openWiktionaryFullscreen = (url) => {
+  showWiktionaryFullscreen.value = true;
+  currentWiktionaryUrl.value = url;
 };
 
 // 播放音频函数
@@ -466,6 +506,97 @@ const playAudio = (audioUrl) => {
   }
 }
 
+/* 全屏Wiktionary模态框样式 */
+.wiktionary-fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wiktionary-fullscreen-content {
+  position: relative;
+  width: 95%;
+  height: 95%;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.close-fullscreen-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: var(--el-color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.close-fullscreen-btn:hover {
+  background: var(--el-color-primary-light-3);
+  transform: scale(1.1);
+}
+
+.wiktionary-fullscreen-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 平板端适配 */
+@media (max-width: 1024px) {
+  .wiktionary-fullscreen-content {
+    width: 98%;
+    height: 98%;
+    border-radius: 6px;
+  }
+  
+  .close-fullscreen-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .wiktionary-fullscreen-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  
+  .close-fullscreen-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    top: 10px;
+    right: 10px;
+  }
+}
+
 /* Wiktionary iframe 样式 */
 :deep(.wiktionary-container) {
   width: 100%;
@@ -511,6 +642,18 @@ const playAudio = (audioUrl) => {
 }
 
 /* 响应式调整 */
+@media (min-width: 768px) {
+  :deep(.wiktionary-container) {
+    height: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :deep(.wiktionary-container) {
+    height: 600px;
+  }
+}
+
 @media (min-width: 768px) {
   :deep(.wiktionary-container) {
     height: 500px;
