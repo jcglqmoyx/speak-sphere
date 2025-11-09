@@ -50,6 +50,12 @@
             >
               {{ isQuerying ? '查询中...' : '开始查询' }}
             </el-button>
+            <el-button 
+              @click="closePanel" 
+              style="background-color: #909399; color: white; border: 2px solid #909399; padding: 10px 20px; border-radius: 4px; min-width: 100px;"
+            >
+              关闭
+            </el-button>
             <el-button v-if="hasResponse" @click="clearResponse" style="background-color: #f56c6c; color: white; border: 2px solid #f56c6c; padding: 10px 20px; border-radius: 4px;">清除回复</el-button>
           </div>
 
