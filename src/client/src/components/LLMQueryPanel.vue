@@ -23,8 +23,8 @@
             <div class="section-header">
               <h4>AI 提示词</h4>
               <div class="prompt-actions">
-                <el-button class="test-button-copy" size="small" @click="copyPrompt" style="background-color: #409eff; color: white; border: 2px solid #409eff; padding: 8px 16px; border-radius: 4px;">复制</el-button>
-                <el-button class="test-button-reset" size="small" @click="resetPrompt" style="background-color: #909399; color: white; border: 2px solid #909399; padding: 8px 16px; border-radius: 4px;">重置</el-button>
+                <el-button class="test-button-copy" size="small" @click="copyPrompt" style="background-color: #409eff; color: white; border: 2px solid #409eff; padding: 6px 12px; border-radius: 4px; min-width: 60px; text-align: center; justify-content: center;">复制</el-button>
+                <el-button class="test-button-reset" size="small" @click="resetPrompt" style="background-color: #909399; color: white; border: 2px solid #909399; padding: 6px 12px; border-radius: 4px; min-width: 60px; text-align: center; justify-content: center;">重置</el-button>
               </div>
             </div>
             <textarea
@@ -46,17 +46,17 @@
               @click="queryLLM" 
               :loading="isQuerying"
               :disabled="isQuerying"
-              style="background-color: #67c23a; color: white; border: 2px solid #67c23a; padding: 10px 20px; border-radius: 4px; min-width: 100px;"
+              style="background-color: #67c23a; color: white; border: 2px solid #67c23a; padding: 6px 12px; border-radius: 4px; min-width: 60px; text-align: center; justify-content: center;"
             >
-              {{ isQuerying ? '查询中...' : '开始查询' }}
+              {{ isQuerying ? '查询中...' : '查询' }}
             </el-button>
             <el-button 
               @click="closePanel" 
-              style="background-color: #909399; color: white; border: 2px solid #909399; padding: 10px 20px; border-radius: 4px; min-width: 100px;"
+              style="background-color: #909399; color: white; border: 2px solid #909399; padding: 6px 12px; border-radius: 4px; min-width: 60px; text-align: center; justify-content: center;"
             >
               关闭
             </el-button>
-            <el-button v-if="hasResponse" @click="clearResponse" style="background-color: #f56c6c; color: white; border: 2px solid #f56c6c; padding: 10px 20px; border-radius: 4px;">清除回复</el-button>
+            <el-button v-if="hasResponse" @click="clearResponse" style="background-color: #f56c6c; color: white; border: 2px solid #f56c6c; padding: 6px 12px; border-radius: 4px; min-width: 60px; text-align: center; justify-content: center;">清除回复</el-button>
           </div>
 
           <!-- 回复区域 -->
