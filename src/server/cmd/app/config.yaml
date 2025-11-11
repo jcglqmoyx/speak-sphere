@@ -1,8 +1,7 @@
 # 应用运行模式
 # debug: 开发模式，会输出更详细的日志信息
 # release: 生产模式，日志输出相对简洁
-mode:
-  release
+mode: release
 
 # 服务器配置
 server:
@@ -76,22 +75,26 @@ dictionary:
     - title: Google
       prefix: https://www.google.com/search?q=
       suffix:
-    # YouGlish发音查询
-    - title: YouGlish
-      prefix: https://youglish.com/pronounce/
-      suffix: /english/us?
-    # 韦氏词典
-    - title: Merriam-Webster Dictionary
+    # Cambridge Dictionary English
+    - title: 剑桥英英
+      prefix: https://dictionary.cambridge.org/dictionary/english/
+      suffix:
+    # Cambridge Dictionary English-Chinese
+    - title: 剑桥英中
+      prefix: https://dictionary.cambridge.org/dictionary/english-chinese-simplified/
+      suffix:
+    # Merriam-Webster Dictionary
+    - title: Merriam-Webster
       prefix: https://www.merriam-webster.com/dictionary/
+      suffix: "&lang=en"
+    # Collins Dictionary
+    - title: Collins
+      prefix: https://www.collinsdictionary.com/dictionary/english/
       suffix:
     # 有道词典
-    - title: 有道词典
-      prefix: https://youdao.com/result?word=
+    - title: Youdao
+      prefix: https://www.youdao.com/result?word=
       suffix: "&lang=en"
-    # YouTube搜索
-    - title: Youtube
-      prefix: https://www.youtube.com/results?search_query=
-      suffix:
 
 # 机器配置（预留用于扩展功能）
 machine:

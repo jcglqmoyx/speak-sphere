@@ -3,13 +3,14 @@ package util
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/xuri/excelize/v2"
 	"io"
 	"os"
-	"strings"
 	"speak-sphere/pkg/server/conf"
 	"speak-sphere/pkg/server/model"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 )
 
 func GetFileMD5(filename string) string {

@@ -1,8 +1,9 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
 	"speak-sphere/pkg/server/controller"
+
+	"github.com/gin-gonic/gin"
 )
 
 func RegisterBookRouter(route *gin.Engine) {
@@ -67,29 +68,29 @@ func RegisterUserRouter(route *gin.Engine) {
 }
 
 func RegisterLLMServiceRouter(route *gin.Engine) {
-  r := route.Group("/llm")
+	r := route.Group("/llm")
 
-  r.POST("/add", controller.AddLLMService)
+	r.POST("/add", controller.AddLLMService)
 
-  r.DELETE("/delete/:id", controller.DeleteLLMService)
+	r.DELETE("/delete/:id", controller.DeleteLLMService)
 
-  r.PUT("/update/:id", controller.UpdateLLMService)
+	r.PUT("/update/:id", controller.UpdateLLMService)
 
-  r.GET("/list", controller.GetLLMServices)
-  r.GET("/default", controller.GetDefaultLLMService)
-  r.GET("/:id", controller.GetLLMServiceByID)
+	r.GET("/list", controller.GetLLMServices)
+	r.GET("/default", controller.GetDefaultLLMService)
+	r.GET("/:id", controller.GetLLMServiceByID)
 }
 
 func RegisterAIPromptRouter(route *gin.Engine) {
-  r := route.Group("/aiprompt")
+	r := route.Group("/aiprompt")
 
-  r.POST("/add", controller.AddAIPrompt)
+	r.POST("/add", controller.AddAIPrompt)
 
-  r.DELETE("/delete/:id", controller.DeleteAIPrompt)
+	r.DELETE("/delete/:id", controller.DeleteAIPrompt)
 
-  r.PUT("/update/:id", controller.UpdateAIPrompt)
+	r.PUT("/update/:id", controller.UpdateAIPrompt)
 
-  r.GET("/list", controller.GetAIPrompts)
-  r.GET("/default", controller.GetDefaultAIPrompt)
-  r.GET("/:id", controller.GetAIPromptByID)
+	r.GET("/list", controller.GetAIPrompts)
+	r.GET("/default", controller.GetDefaultAIPrompt)
+	r.GET("/:id", controller.GetAIPromptByID)
 }

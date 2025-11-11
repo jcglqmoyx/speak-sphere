@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"strconv"
 	"speak-sphere/pkg/server/conf"
 	"speak-sphere/pkg/server/dao"
 	"speak-sphere/pkg/server/model"
 	"speak-sphere/pkg/server/util"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AddDictionary(c *gin.Context) {

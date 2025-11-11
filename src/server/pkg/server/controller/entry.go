@@ -212,30 +212,30 @@ func CheckWordInBook(c *gin.Context) {
 		util.JsonHttpResponse(c, 1, "词书ID不合法", nil)
 		return
 	}
-	
+
 	if word == "" {
 		util.JsonHttpResponse(c, 1, "单词不能为空", nil)
 		return
 	}
-	
+
 	// 检查用户是否有权限访问该词书
 	userID, err := util.GetUserID(c)
 	if err != nil {
 		util.JsonHttpResponse(c, 1, "用户不存在", nil)
 		return
 	}
-	
+
 	book, found := dao.FindBookByID(bookID)
 	if !found {
 		util.JsonHttpResponse(c, 1, "词书不存在", nil)
 		return
 	}
-	
+
 	if book.UserID != userID {
 		util.JsonHttpResponse(c, 1, "您无权访问该词书", nil)
 		return
 	}
-	
+
 	// 检查单词是否在词书中
 	_, exists := dao.FindEntryByWord(word, bookID)
 	util.JsonHttpResponse(c, 0, "success", map[string]bool{

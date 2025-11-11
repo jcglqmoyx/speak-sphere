@@ -5,10 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"speak-sphere/pkg/server/conf"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"time"
-	"speak-sphere/pkg/server/conf"
 )
 
 func GenerateSalt() string {

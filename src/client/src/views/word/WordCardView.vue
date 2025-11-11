@@ -304,7 +304,7 @@ const handleKeydown = async (event) => {
     if ('0123456789'.includes(event.key)) {
       let number = +event.key;
       if (number === 0) number = 10;
-      if (number <= dictionaries.length) {
+      if (number <= dictionaries.length && showSearchDrawer.value) {
         window.open(dictionaries[number - 1].prefix + words[idx.value].word + (dictionaries[number - 1].suffix || ""), '_blank');
       }
     } else if (event.key === 's') {

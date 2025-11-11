@@ -62,11 +62,11 @@ type LLMService struct {
 // AIPrompt AI提示词管理
 type AIPrompt struct {
 	ID          int            `gorm:"primaryKey" json:"id" form:"id"`
-	Name        string         `gorm:"column:name" json:"name" form:"name"`                          // 提示词名称
-	Content     string         `gorm:"column:content;type:text" json:"content" form:"content"`       // 提示词内容
-	Description string         `gorm:"column:description" json:"description" form:"description"`      // 提示词描述
-	IsDefault   bool           `gorm:"column:is_default;default:false" json:"is_default"`            // 是否默认提示词
-	UserID      int            `gorm:"column:user_id" form:"user_id" json:"user_id"`                 // 用户ID，0表示系统默认
+	Name        string         `gorm:"column:name" json:"name" form:"name"`                      // 提示词名称
+	Content     string         `gorm:"column:content;type:text" json:"content" form:"content"`   // 提示词内容
+	Description string         `gorm:"column:description" json:"description" form:"description"` // 提示词描述
+	IsDefault   bool           `gorm:"column:is_default;default:false" json:"is_default"`        // 是否默认提示词
+	UserID      int            `gorm:"column:user_id" form:"user_id" json:"user_id"`             // 用户ID，0表示系统默认
 	CreatedAt   time.Time      `json:"created_at" form:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at" form:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`
