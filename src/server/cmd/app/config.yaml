@@ -86,7 +86,7 @@ dictionary:
     # Merriam-Webster Dictionary
     - title: Merriam-Webster
       prefix: https://www.merriam-webster.com/dictionary/
-      suffix: "&lang=en"
+      suffix:
     # Collins Dictionary
     - title: Collins
       prefix: https://www.collinsdictionary.com/dictionary/english/

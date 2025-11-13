@@ -232,7 +232,7 @@ const toggleLLMPanel = () => {
 
 // 处理词典点击事件
 const handleDictionaryClick = (dictionary) => {
-  const url = dictionary.prefix + words.value[idx].word + (dictionary.suffix || '');
+  const url = dictionary.prefix + words[idx.value].word + (dictionary.suffix || '');
   
   // 如果是Wiktionary并且在移动端，使用全屏模态框
   const isWiktionary = dictionary.title.toLowerCase().includes('wiktionary');
