@@ -20,9 +20,9 @@ type Book struct {
 
 type Dictionary struct {
 	ID        int            `gorm:"primaryKey" json:"id" form:"id"`
-	Title     string         `gorm:"column:title" form:"title" json:"title,omitempty"`
-	Prefix    string         `gorm:"column:prefix" form:"prefix" json:"prefix,omitempty"`
-	Suffix    string         `gorm:"column:suffix" form:"suffix" json:"suffix,omitempty"`
+	Title     string         `gorm:"column:title" form:"title" json:"title"`
+	Prefix    string         `gorm:"column:prefix" form:"prefix" json:"prefix"`
+	Suffix    string         `gorm:"column:suffix" form:"suffix" json:"suffix"`
 	UserID    int            `gorm:"column:user_id" form:"user_id" json:"user_id"`
 	CreatedAt time.Time      `json:"created_at" form:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at" form:"updated_at"`

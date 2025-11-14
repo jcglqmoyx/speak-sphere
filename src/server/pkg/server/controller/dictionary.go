@@ -74,7 +74,8 @@ func UpdateDictionary(c *gin.Context) {
 		return
 	}
 	if _, found := dao.FindDictionaryByID(dictionary.ID); !found {
-		util.JsonHttpResponse(c, 1, "该词典不还在，无法更新", nil)
+		util.JsonHttpResponse(c, 1, "该词典不存在，无法更新", nil)
+		return
 	}
 	util.JsonHttpResponse(c, 0, "更新成功", dao.UpdateDictionary(dictionary))
 }

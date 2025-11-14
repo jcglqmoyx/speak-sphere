@@ -1,6 +1,8 @@
 package dao
 
-import "speak-sphere/pkg/server/model"
+import (
+	"speak-sphere/pkg/server/model"
+)
 
 func AddDictionary(dictionary *model.Dictionary) *model.Dictionary {
 	db := GetDB()
@@ -15,7 +17,12 @@ func DeleteDictionaryByID(id int) {
 
 func UpdateDictionary(dictionary *model.Dictionary) *model.Dictionary {
 	db := GetDB()
-	db.Model(&model.Dictionary{}).Where("id = ?", dictionary.ID).Updates(dictionary)
+	db.Model(&model.Dictionary{}).Where("id = ?", dictionary.ID).Updates(map[string]interface{}{
+		"title":  dictionary.Title,
+		"prefix": dictionary.Prefix,
+		"suffix": dictionary.Suffix,
+	})
+
 	return dictionary
 }
 
