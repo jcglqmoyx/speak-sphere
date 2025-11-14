@@ -72,6 +72,10 @@ type AIPrompt struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at" form:"deleted_at"`
 }
 
+func (AIPrompt) TableName() string {
+	return "ai_prompts"
+}
+
 type User struct {
 	ID                     int            `gorm:"primaryKey" json:"id" form:"id"`
 	Username               string         `gorm:"column:username;unique" form:"username" json:"username,omitempty"`
