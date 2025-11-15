@@ -2,16 +2,16 @@
   <ContentBase>
     <el-container v-if="dataLoaded">
       <el-main>
-        <el-table :data="books">
+        <el-table :data="vocabularySets">
           <el-table-column label="名称" prop="title"/>
           <el-table-column label="分类" prop="category"/>
           <el-table-column label="创建时间" prop="created_at" :formatter="formatDateTime"/>
           <el-table-column label="更新时间" prop="updated_at" :formatter="formatDateTime"/>
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button @click="handleViewEntries(scope.row)">查看词汇</el-button>
-              <el-button @click="handleEditBook(scope.row)">编辑</el-button>
-              <el-button @click="handleDeleteBook(scope.row)">删除</el-button>
+              <el-button @click="handleViewVocabularies(scope.row)">查看词汇</el-button>
+              <el-button @click="handleEditVocabularySet(scope.row)">编辑</el-button>
+              <el-button @click="handleDeleteVocabularySet(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -35,12 +35,12 @@
     </el-container>
 
     <el-dialog v-model="editFormVisible" title="编辑词书">
-      <el-form :model="book">
+      <el-form :model="vocabularySet">
         <el-form-item label="标题">
-          <el-input v-model="book.title" @keyup.enter="confirmUpdate" autocomplete="off"/>
+          <el-input v-model="vocabularySet.title" @keyup.enter="confirmUpdate" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="分类">
-          <el-input v-model="book.category" @keyup.enter="confirmUpdate" autocomplete="off"/>
+          <el-input v-model="vocabularySet.category" @keyup.enter="confirmUpdate" autocomplete="off"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -52,12 +52,12 @@
     </el-dialog>
 
     <el-dialog v-model="addFormVisible" title="新建词书">
-      <el-form :model="newBook">
+      <el-form :model="newVocabularySet">
         <el-form-item label="标题">
-          <el-input v-model="newBook.title" autocomplete="off"/>
+          <el-input v-model="newVocabularySet.title" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="分类">
-          <el-input v-model="newBook.category" @keyup.enter="confirmAdd" autocomplete="off"/>
+          <el-input v-model="newVocabularySet.category" @keyup.enter="confirmAdd" autocomplete="off"/>
         </el-form-item>
         <el-checkbox v-model="uploadEnabled">上传文件(如不上传文件，则创建一个空的词书)</el-checkbox>
         <el-form-item v-if="uploadEnabled">
@@ -66,12 +66,12 @@
               :before-upload="beforeUpload"
               :action="uploadFileAPI"
               :headers="headers"
-              :data="{title: newBook.title, category: newBook.category}"
+              :data="{title: newVocabularySet.title, category: newVocabularySet.category}"
               :name="`file`"
               :limit="1"
               :on-exceed="handleExceed"
               :auto-upload="false"
-              :on-success="handleAddBookSuccess"
+              :on-success="handleAddVocabularySetSuccess"
           >
             <template #trigger>
               <el-button type="primary">选择文件</el-button>
@@ -116,12 +116,12 @@ import "element-plus/dist/index.css";
 import {useStore} from "vuex";
 import ContentBase from "@/components/ContentBase.vue";
 import {onMounted, reactive, ref} from "vue";
-import {getBookCount, getBookList} from "@/assets/js/module/book/query";
-import {checkBookFileType} from "@/assets/js/util/file_util";
-import {updateBook} from "@/assets/js/module/book/update";
-import {deleteBook} from "@/assets/js/module/book/delete";
+import {getVocabularySetCount, getVocabularySetList} from "@/assets/js/module/vocabulary_set/query";
+import {checkVocabularySetFileType} from "@/assets/js/util/file_util";
+import {updateVocabularySet} from "@/assets/js/module/vocabulary_set/update";
+import {deleteVocabularySet} from "@/assets/js/module/vocabulary_set/delete";
 import {formatDateTime} from "@/assets/js/util/datetime_util";
-import {addBook} from "@/assets/js/module/book/add";
+import {addVocabularySet} from "@/assets/js/module/vocabulary_set/add";
 import router from "@/router";
 
 const store = useStore();
@@ -133,25 +133,25 @@ const checkResponse = (response) => {
 }
 let editFormVisible = ref(false);
 
-let book = ref(null)
+let vocabularySet = ref(null)
 
-let books = reactive([]);
+let vocabularySets = reactive([]);
 let pageSize = ref(5);
 let currentPage = ref(1);
 
 const handleCurrentChange = async () => {
   dataLoaded.value = false;
-  const getBookListResponse = await getBookList(pageSize.value, currentPage.value);
-  checkResponse(getBookListResponse)
-  books = getBookListResponse.data;
+  const getVocabularySetListResponse = await getVocabularySetList(pageSize.value, currentPage.value);
+  checkResponse(getVocabularySetListResponse)
+  vocabularySets = getVocabularySetListResponse.data;
   dataLoaded.value = true;
 };
 
 const handleSizeChange = async () => {
   dataLoaded.value = false;
-  const getBookListResponse = await getBookList(pageSize.value, currentPage.value);
-  checkResponse(getBookListResponse)
-  books = getBookListResponse.data;
+  const getVocabularySetListResponse = await getVocabularySetList(pageSize.value, currentPage.value);
+  checkResponse(getVocabularySetListResponse)
+  vocabularySets = getVocabularySetListResponse.data;
   dataLoaded.value = true;
 }
 
@@ -159,23 +159,23 @@ const dataLoaded = ref(false);
 let countTotalRecords = ref(0);
 onMounted(
     async () => {
-      const getBookCountResponse = await getBookCount();
-      checkResponse(getBookCountResponse);
-      countTotalRecords.value = getBookCountResponse.data;
+      const getVocabularySetCountResponse = await getVocabularySetCount();
+      checkResponse(getVocabularySetCountResponse);
+      countTotalRecords.value = getVocabularySetCountResponse.data;
 
-      const getBookListResponse = await getBookList(pageSize.value, currentPage.value);
-      checkResponse(getBookListResponse);
-      books = getBookListResponse.data;
+      const getVocabularySetListResponse = await getVocabularySetList(pageSize.value, currentPage.value);
+      checkResponse(getVocabularySetListResponse);
+      vocabularySets = getVocabularySetListResponse.data;
       dataLoaded.value = true;
     }
 );
 
-const handleViewEntries = (row) => {
-  localStorage.setItem("book_id", row.id);
-  router.push({name: "word_setting"});
+const handleViewVocabularies = (row) => {
+  localStorage.setItem("vocabulary_set_id", row.id);
+  router.push({name: "vocabulary_setting"});
 }
-const handleEditBook = (row) => {
-  book.value = row;
+const handleEditVocabularySet = (row) => {
+  vocabularySet.value = row;
   editFormVisible.value = true;
 }
 
@@ -187,28 +187,28 @@ const cancelUpdate = () => {
 const confirmUpdate = async () => {
   editFormVisible.value = false;
   dataLoaded.value = false;
-  const updateBookResponse = await updateBook(book.value.id, book.value.title, book.value.category, book.value.created_at);
-  checkResponse(updateBookResponse);
+  const updateVocabularySetResponse = await updateVocabularySet(vocabularySet.value.id, vocabularySet.value.title, vocabularySet.value.category, vocabularySet.value.created_at);
+  checkResponse(updateVocabularySetResponse);
   dataLoaded.value = true;
   location.reload();
 }
-const handleDeleteBook = async (row) => {
+const handleDeleteVocabularySet = async (row) => {
   ElNotification({
     title: '删除词书',
     message: '词书删除中, 请稍等...',
     type: 'info',
     duration: 1000,
   });
-  const deleteBookResponse = await deleteBook(row.id);
-  checkResponse(deleteBookResponse);
-  if (deleteBookResponse.code === 0) {
+  const deleteVocabularySetResponse = await deleteVocabularySet(row.id);
+  checkResponse(deleteVocabularySetResponse);
+  if (deleteVocabularySetResponse.code === 0) {
     dataLoaded.value = false;
-    const getBookCountResponse = await getBookCount();
-    checkResponse(getBookCountResponse);
-    countTotalRecords.value = getBookCountResponse.data;
-    const getBookListResponse = await getBookList(pageSize.value, currentPage.value);
-    checkResponse(getBookListResponse);
-    books = getBookListResponse.data;
+    const getVocabularySetCountResponse = await getVocabularySetCount();
+    checkResponse(getVocabularySetCountResponse);
+    countTotalRecords.value = getVocabularySetCountResponse.data;
+    const getVocabularySetListResponse = await getVocabularySetList(pageSize.value, currentPage.value);
+    checkResponse(getVocabularySetListResponse);
+    vocabularySets = getVocabularySetListResponse.data;
     dataLoaded.value = true;
     ElNotification({
       title: 'Success',
@@ -221,7 +221,7 @@ const handleDeleteBook = async (row) => {
 
 
 const addFormVisible = ref(false);
-const newBook = reactive({
+const newVocabularySet = reactive({
   title: '',
   category: '',
 });
@@ -240,7 +240,7 @@ const handleExceed = (files) => {
   upload.value.handleStart(file)
 }
 
-const handleAddBookSuccess = (response) => {
+const handleAddVocabularySetSuccess = (response) => {
   if (response.code === 1) {
     ElNotification({
       title: '上传失败',
@@ -261,7 +261,7 @@ const handleAddBookSuccess = (response) => {
   }, 1000);
 }
 
-const handleAddBookError = (response) => {
+const handleAddVocabularySetError = (response) => {
   ElNotification({
     title: 'Error',
     message: response.message,
@@ -273,8 +273,8 @@ const handleAddBookError = (response) => {
 const cancelAdd = () => {
   uploadEnabled.value = false;
   addFormVisible.value = false;
-  newBook.title = '';
-  newBook.category = '';
+  newVocabularySet.title = '';
+  newVocabularySet.category = '';
 }
 
 
@@ -291,9 +291,9 @@ const confirmAdd = async () => {
   if (upload.value != null) {
     upload.value.submit();
   } else {
-    const addBookResponse = await addBook(newBook.title, newBook.category);
-    checkResponse(addBookResponse);
-    if (addBookResponse.code === 0) {
+    const addVocabularySetResponse = await addVocabularySet(newVocabularySet.title, newVocabularySet.category);
+    checkResponse(addVocabularySetResponse);
+    if (addVocabularySetResponse.code === 0) {
       ElNotification({
         title: 'Success',
         message: '添加成功',
@@ -301,28 +301,28 @@ const confirmAdd = async () => {
         duration: 1000,
       });
     } else {
-      handleAddBookError(addBookResponse);
+      handleAddVocabularySetError(addVocabularySetResponse);
     }
   }
-  const getBookCountResponse = await getBookCount();
-  checkResponse(getBookCountResponse);
-  countTotalRecords.value = getBookCountResponse.data.data;
-  const getBookListResponse = await getBookList(pageSize.value, currentPage.value);
-  checkResponse(getBookListResponse);
-  books = getBookListResponse.data;
+  const getVocabularySetCountResponse = await getVocabularySetCount();
+  checkResponse(getVocabularySetCountResponse);
+  countTotalRecords.value = getVocabularySetCountResponse.data.data;
+  const getVocabularySetListResponse = await getVocabularySetList(pageSize.value, currentPage.value);
+  checkResponse(getVocabularySetListResponse);
+  vocabularySets = getVocabularySetListResponse.data;
   dataLoaded.value = true;
-  newBook.title = '';
-  newBook.category = '';
+  newVocabularySet.title = '';
+  newVocabularySet.category = '';
 }
 
 const serverLink = localStorage.getItem('server_link');
-const uploadFileAPI = ref(serverLink + '/book/add');
+const uploadFileAPI = ref(serverLink + '/vocabulary_set/add');
 const headers = ref({
   'Authorization': 'Bearer ' + localStorage.getItem('token')
 })
 
 const beforeUpload = (file) => {
-  const res = checkBookFileType(file);
+  const res = checkVocabularySetFileType(file);
   if (res.code === 0) {
     return true;
   } else {

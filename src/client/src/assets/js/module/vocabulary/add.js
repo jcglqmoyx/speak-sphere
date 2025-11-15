@@ -1,13 +1,13 @@
 import axios from "axios";
 
-export async function AddEntry(bookId, word, meaning, note) {
+export async function AddVocabulary(vocabularySetId, vocabulary, meaning, note) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
-        const url = serverLink + '/entry/add';
+        const url = serverLink + '/vocabulary/add';
         const response = await axios.post(url, {
-                book_id: bookId,
-                word,
+                vocabulary_set_id: vocabularySetId,
+                vocabulary: vocabulary,
                 meaning,
                 note,
             },

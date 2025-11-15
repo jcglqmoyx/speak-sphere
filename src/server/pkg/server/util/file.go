@@ -25,25 +25,25 @@ func GetFileMD5(filename string) string {
 	return md5str
 }
 
-func ParseTxtFile(c *gin.Context) ([]*model.Entry, error) {
+func ParseTxtFile(c *gin.Context) ([]*model.Vocabulary, error) {
 	file, _, _ := c.Request.FormFile("file")
 	content, _ := io.ReadAll(file)
-	entries := strings.Split(string(content), "\n")
+	vocabularies := strings.Split(string(content), "\n")
 
 	userID, _ := GetUserID(c)
 
-	var res []*model.Entry
-	for row, entry := range entries {
-		s := strings.Trim(entry, "\n")
+	var res []*model.Vocabulary
+	for row, vocabulary := range vocabularies {
+		s := strings.Trim(vocabulary, "\n")
 		s = strings.Trim(s, " ")
 		s = strings.Trim(s, "\t")
-		if len(s) > conf.Cfg.Entry.MaxWordLength {
+		if len(s) > conf.Cfg.Vocabulary.MaxVocabularyLength {
 			return nil, fmt.Errorf("单词长度过长: %s, 第(%d)行\n", s, row+1)
 		}
 		if len(s) > 0 {
-			res = append(res, &model.Entry{
-				Word:   s,
-				UserID: userID,
+			res = append(res, &model.Vocabulary{
+				Vocabulary: s,
+				UserID:     userID,
 			})
 		}
 	}
@@ -54,7 +54,7 @@ func ParseTxtFile(c *gin.Context) ([]*model.Entry, error) {
 	return res, nil
 }
 
-func ParseXlsxFile(c *gin.Context) ([]*model.Entry, error) {
+func ParseXlsxFile(c *gin.Context) ([]*model.Vocabulary, error) {
 	file, _, err := c.Request.FormFile("file")
 	if err != nil {
 		return nil, fmt.Errorf("文件为空，请检查是否上传了文件")
@@ -70,21 +70,21 @@ func ParseXlsxFile(c *gin.Context) ([]*model.Entry, error) {
 		return nil, fmt.Errorf("Excel文件无法读取")
 	}
 
-	var res []*model.Entry
+	var res []*model.Vocabulary
 	for _, row := range rows {
-		if len(row[0]) > conf.Cfg.Entry.MaxWordLength {
+		if len(row[0]) > conf.Cfg.Vocabulary.MaxVocabularyLength {
 			return nil, fmt.Errorf("单词长度过长: %s", row[0])
 		}
-		var entry = &model.Entry{
-			Word: row[0],
+		var vocabulary = &model.Vocabulary{
+			Vocabulary: row[0],
 		}
 		if len(row) > 1 {
-			if len(row[1]) > conf.Cfg.Entry.MaxMeaningLength {
+			if len(row[1]) > conf.Cfg.Vocabulary.MaxMeaningLength {
 				return nil, fmt.Errorf("释义长度过长: %s", row[1])
 			}
-			entry.Meaning = row[1]
+			vocabulary.Meaning = row[1]
 		}
-		res = append(res, entry)
+		res = append(res, vocabulary)
 	}
 	return res, nil
 }

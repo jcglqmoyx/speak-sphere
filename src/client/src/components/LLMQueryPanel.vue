@@ -1,5 +1,5 @@
 <template>
-  <!-- 只保留侧边面板，按钮移到WordCardView -->
+  <!-- 只保留侧边面板，按钮移到VocabularyCardView -->
   <div v-if="drawerVisible" class="custom-drawer-overlay" @click="closePanel">
     <div class="custom-drawer" @click.stop>
       <div class="drawer-header">
@@ -12,7 +12,7 @@
       <div class="drawer-content">
         <div v-if="configStatus !== 'ready'" class="config-status">
           <el-alert v-if="configStatus === 'loading'" title="正在加载配置..." type="info" show-icon />
-          <el-alert v-if="configStatus === 'no_word'" title="请先选择要查询的单词" type="warning" show-icon />
+          <el-alert v-if="configStatus === 'no_vocabulary'" title="请先选择要查询的单词" type="warning" show-icon />
           <el-alert v-if="configStatus === 'no_prompt'" title="请先设置默认AI提示词" type="warning" show-icon />
           <el-alert v-if="configStatus === 'no_llm'" title="请先设置默认LLM服务" type="warning" show-icon />
         </div>
@@ -35,7 +35,7 @@
               @input="onPromptChange"
             />
             <div class="prompt-tips">
-              <small>提示：点击文本框可以编辑提示词内容，使用 <code>#word#</code> 作为当前单词的占位符</small>
+              <small>提示：点击文本框可以编辑提示词内容，使用 <code>#vocabulary#</code> 作为当前单词的占位符</small>
             </div>
           </div>
 
@@ -90,7 +90,7 @@ export default {
     Close
   },
   props: {
-    currentWord: {
+    currentVocabulary: {
       type: String,
       default: ''
     }
@@ -154,15 +154,15 @@ export default {
     
     resetPrompt() {
       if (this.originalPrompt) {
-        // 重置时重新替换#word#占位符
-        this.editablePrompt = this.originalPrompt.replace(/#word#/g, this.currentWord)
+        // 重置时重新替换#vocabulary#占位符
+        this.editablePrompt = this.originalPrompt.replace(/#vocabulary#/g, this.currentVocabulary)
         ElMessage.success('提示词已重置为默认')
       }
     },
 
     async loadConfigurations() {
-      if (!this.currentWord) {
-        this.configStatus = 'no_word'
+      if (!this.currentVocabulary) {
+        this.configStatus = 'no_vocabulary'
         return
       }
 
@@ -176,13 +176,13 @@ export default {
         }
         this.aiPrompt = promptResponse.data
 
-        // 设置原始模板和可编辑提示词（已经替换#word#）
+        // 设置原始模板和可编辑提示词（已经替换#vocabulary#）
         this.originalPrompt = this.aiPrompt.content || ''
-        this.editablePrompt = this.originalPrompt.replace(/#word#/g, this.currentWord)
+        this.editablePrompt = this.originalPrompt.replace(/#vocabulary#/g, this.currentVocabulary)
 
         console.log('提示词处理:', {
           original: this.originalPrompt,
-          currentWord: this.currentWord,
+          currentVocabulary: this.currentVocabulary,
           editable: this.editablePrompt
         })
 
@@ -207,7 +207,7 @@ export default {
         return
       }
 
-      if (!this.currentWord) {
+      if (!this.currentVocabulary) {
         ElMessage.error('请先选择要查询的单词')
         return
       }
@@ -336,11 +336,11 @@ export default {
     }
   },
   watch: {
-    currentWord: {
+    currentVocabulary: {
       immediate: true,
-      handler(newWord) {
-        console.log('当前单词变化:', newWord)
-        if (newWord) {
+      handler(newVocabulary) {
+        console.log('当前单词变化:', newVocabulary)
+        if (newVocabulary) {
           this.loadConfigurations()
         }
       }

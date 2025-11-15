@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-func AddEntry(entry *model.Entry) *model.Entry {
+func AddVocabulary(vocabulary *model.Vocabulary) *model.Vocabulary {
 	db := GetDB()
-	db.Create(entry)
-	return entry
+	db.Create(vocabulary)
+	return vocabulary
 }
 
-func BatchInsertEntry(entries []*model.Entry) {
+func BatchInsertVocabulary(vocabularies []*model.Vocabulary) {
 	db := GetDB()
 	tx := db.Begin()
 	defer func() {
@@ -28,13 +28,13 @@ func BatchInsertEntry(entries []*model.Entry) {
 	}
 
 	batchSize := 1000
-	for i := 0; i < len(entries); i += batchSize {
+	for i := 0; i < len(vocabularies); i += batchSize {
 		end := i + batchSize
-		if end > len(entries) {
-			end = len(entries)
+		if end > len(vocabularies) {
+			end = len(vocabularies)
 		}
 
-		if err := tx.Create(entries[i:end]).Error; err != nil {
+		if err := tx.Create(vocabularies[i:end]).Error; err != nil {
 			tx.Rollback()
 			log.Printf("Batch insert error: %v", err)
 			return
@@ -47,66 +47,66 @@ func BatchInsertEntry(entries []*model.Entry) {
 	}
 }
 
-func DeleteEntryByID(id int) {
+func DeleteVocabularyByID(id int) {
 	db := GetDB()
-	db.Delete(&model.Entry{}, id)
+	db.Delete(&model.Vocabulary{}, id)
 }
 
-func UpdateEntry(entry *model.Entry) {
+func UpdateVocabulary(vocabulary *model.Vocabulary) {
 	db := GetDB()
-	db.Model(&model.Entry{}).Where("id = ?", entry.ID).Updates(map[string]interface{}{"word": entry.Word, "meaning": entry.Meaning, "note": entry.Note, "unwanted": entry.Unwanted, "study_count": entry.StudyCount, "date_to_review": entry.DateToReview})
+	db.Model(&model.Vocabulary{}).Where("id = ?", vocabulary.ID).Updates(map[string]interface{}{"vocabulary": vocabulary.Vocabulary, "meaning": vocabulary.Meaning, "note": vocabulary.Note, "unwanted": vocabulary.Unwanted, "study_count": vocabulary.StudyCount, "date_to_review": vocabulary.DateToReview})
 }
 
-func SetEntryUnwanted(entryID int) {
+func SetVocabularyUnwanted(vocabularyID int) {
 	db := GetDB()
-	db.Model(&model.Entry{}).Where("id = ?", entryID).Update("unwanted", true)
+	db.Model(&model.Vocabulary{}).Where("id = ?", vocabularyID).Update("unwanted", true)
 }
 
-func FindEntryByWord(word string, bookID int) (*model.Entry, bool) {
+func FindVocabularyByVocabulary(vocabulary string, vocabularySetID int) (*model.Vocabulary, bool) {
 	db := GetDB()
-	var entries []*model.Entry
-	db.Limit(1).Where("word = ? AND book_id = ?", word, bookID).Find(&entries)
-	if len(entries) > 0 {
-		return entries[0], true
+	var vocabularies []*model.Vocabulary
+	db.Limit(1).Where("vocabulary = ? AND vocabulary_set_id = ?", vocabulary, vocabularySetID).Find(&vocabularies)
+	if len(vocabularies) > 0 {
+		return vocabularies[0], true
 	} else {
 		return nil, false
 	}
 }
 
-func FindEntryByID(id int) (*model.Entry, bool) {
+func FindVocabularyByID(id int) (*model.Vocabulary, bool) {
 	db := GetDB()
-	var entries []*model.Entry
-	db.Limit(1).Where("id = ?", id).Find(&entries)
-	if len(entries) > 0 {
-		return entries[0], true
+	var vocabularies []*model.Vocabulary
+	db.Limit(1).Where("id = ?", id).Find(&vocabularies)
+	if len(vocabularies) > 0 {
+		return vocabularies[0], true
 	}
 	return nil, false
 }
 
-func GetEntriesToLearn(bookID int, count int) []*model.Entry {
+func GetVocabulariesToLearn(vocabularySetID int, count int) []*model.Vocabulary {
 	db := GetDB()
-	var entries []*model.Entry
-	db.Limit(count).Where("book_id = ? AND study_count = ? AND unwanted = ?", bookID, 0, false).Find(&entries)
-	return entries
+	var vocabularies []*model.Vocabulary
+	db.Limit(count).Where("vocabulary_set_id = ? AND study_count = ? AND unwanted = ?", vocabularySetID, 0, false).Find(&vocabularies)
+	return vocabularies
 }
 
-func GetEntriesToReview(userID int) []*model.Entry {
+func GetVocabulariesToReview(userID int) []*model.Vocabulary {
 	db := GetDB()
-	var entries []*model.Entry
-	db.Where("user_id = ? AND date_to_review <= ?", userID, util.DateToString(time.Now())).Find(&entries)
-	return entries
+	var vocabularies []*model.Vocabulary
+	db.Where("user_id = ? AND date_to_review <= ?", userID, util.DateToString(time.Now())).Find(&vocabularies)
+	return vocabularies
 }
 
-func CountEntry(bookID int) int64 {
+func CountVocabulary(vocabularySetID int) int64 {
 	db := GetDB()
 	var count int64
-	db.Model(&model.Entry{}).Where("book_id = ?", bookID).Count(&count)
+	db.Model(&model.Vocabulary{}).Where("vocabulary_set_id = ?", vocabularySetID).Count(&count)
 	return count
 }
 
-func ListEntry(bookID int, pageSize int, currentPage int) []*model.Entry {
+func ListVocabulary(vocabularySetID int, pageSize int, currentPage int) []*model.Vocabulary {
 	db := GetDB()
-	var entries []*model.Entry
-	db.Where("book_id = ?", bookID).Offset((currentPage - 1) * pageSize).Limit(pageSize).Find(&entries)
-	return entries
+	var vocabularies []*model.Vocabulary
+	db.Where("vocabulary_set_id = ?", vocabularySetID).Offset((currentPage - 1) * pageSize).Limit(pageSize).Find(&vocabularies)
+	return vocabularies
 }

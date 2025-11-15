@@ -7,7 +7,7 @@
       text-color="#fff"
       active-text-color="#ffd04b"
   >
-    <router-link :to=" {name: 'word'} ">
+    <router-link :to=" {name: 'vocabulary'} ">
       <el-menu-item index="1">
         <template #title>单词</template>
       </el-menu-item>
@@ -15,7 +15,7 @@
 
     <el-sub-menu index="2">
       <template #title>设置</template>
-      <router-link :to="{ name: 'book_setting' }">
+      <router-link :to="{ name: 'vocabulary_set_setting' }">
         <el-menu-item index="2-1">词书设置</el-menu-item>
       </router-link>
       <router-link :to="{ name: 'dictionary_setting' }">

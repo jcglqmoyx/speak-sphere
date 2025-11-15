@@ -2,8 +2,8 @@
   <ContentBase>
     <el-container v-if="dataLoaded">
       <el-main>
-        <el-table :data="words">
-          <el-table-column label="单词" prop="word"/>
+        <el-table :data="vocabularies">
+          <el-table-column label="单词" prop="vocabulary"/>
           <el-table-column label="含义" prop="meaning"/>
           <el-table-column label="备注" prop="note"/>
           <el-table-column label="不想学" prop="unwanted"/>
@@ -14,10 +14,10 @@
           <el-table-column label="操作">
             <template #default="scope">
               <el-tooltip content="编辑单词条目" placement="top">
-                <el-button @click="handleEditWord(scope.row)">编辑</el-button>
+                <el-button @click="handleEditVocabulary(scope.row)">编辑</el-button>
               </el-tooltip>
               <el-tooltip content="删除单词条目" placement="top">
-                <el-button @click="handleDeleteEntry(scope.row)">删除</el-button>
+                <el-button @click="handleDeleteVocabulary(scope.row)">删除</el-button>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -45,21 +45,21 @@
 
 
     <el-dialog v-model="editFormVisible" title="编辑条目">
-      <el-form :model="word">
+      <el-form :model="vocabulary">
         <el-form-item label="单词">
-          <el-input v-model="word.word" autocomplete="off"/>
+          <el-input v-model="vocabulary.vocabulary" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="含义">
-          <el-input type="textarea" :autosize="{minRows: 5}" v-model="word.meaning" autocomplete="off"/>
+          <el-input type="textarea" :autosize="{minRows: 5}" v-model="vocabulary.meaning" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="备注">
-          <el-input type="textarea" :autosize="{minRows: 3}" v-model="word.note" autocomplete="off"/>
+          <el-input type="textarea" :autosize="{minRows: 3}" v-model="vocabulary.note" autocomplete="off"/>
         </el-form-item>
         <el-form-item>
-          <el-checkbox v-model="word.unwanted" label="标记为不想学" size="large"/>
+          <el-checkbox v-model="vocabulary.unwanted" label="标记为不想学" size="large"/>
         </el-form-item>
         <el-form-item label="学习次数">
-          <el-input-number v-model="word.study_count" :min="0" :max="30"/>
+          <el-input-number v-model="vocabulary.study_count" :min="0" :max="30"/>
         </el-form-item>
         <el-form-item label="下次复习日期">
           <div class="block">
@@ -85,15 +85,15 @@
     </el-dialog>
 
     <el-dialog v-model="addFormVisible" title="新建条目">
-      <el-form :model="newWord">
+      <el-form :model="newVocabulary">
         <el-form-item label="单词">
-          <el-input v-model="newWord.word" @keyup.enter="confirmAdd" autocomplete="off"/>
+          <el-input v-model="newVocabulary.vocabulary" @keyup.enter="confirmAdd" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="含义">
-          <el-input v-model="newWord.meaning" @keyup.enter="confirmAdd" autocomplete="off"/>
+          <el-input v-model="newVocabulary.meaning" @keyup.enter="confirmAdd" autocomplete="off"/>
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="newWord.note" @keyup.enter="confirmAdd" autocomplete="off"/>
+          <el-input v-model="newVocabulary.note" @keyup.enter="confirmAdd" autocomplete="off"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -133,14 +133,14 @@ import {
 } from "element-plus";
 import {onMounted, reactive, ref} from "vue";
 import ContentBase from "@/components/ContentBase.vue";
-import {getWordCount, getWordList} from "@/assets/js/module/entry/query";
+import {getVocabularyCount, getVocabularyList} from "@/assets/js/module/vocabulary/query";
 import {useStore} from "vuex";
-import {updateEntry} from "@/assets/js/module/entry/update";
-import {deleteEntry} from "@/assets/js/module/entry/delete";
-import {AddEntry} from "@/assets/js/module/entry/add";
+import {updateVocabulary} from "@/assets/js/module/vocabulary/update";
+import {deleteVocabulary} from "@/assets/js/module/vocabulary/delete";
+import {AddVocabulary} from "@/assets/js/module/vocabulary/add";
 
-const bookId = parseInt(localStorage.getItem("book_id"));
-let words = reactive([]);
+const vocabularySetId = parseInt(localStorage.getItem("vocabulary_set_id"));
+let vocabularies = reactive([]);
 let pageSize = ref(5);
 let currentPage = ref(1);
 
@@ -156,54 +156,54 @@ const dataLoaded = ref(false);
 let countTotalRecords = ref(0);
 onMounted(
     async () => {
-      const getWordCountResponse = await getWordCount(bookId);
-      checkResponse(getWordCountResponse);
-      countTotalRecords.value = getWordCountResponse.data;
+      const getVocabularyCountResponse = await getVocabularyCount(vocabularySetId);
+      checkResponse(getVocabularyCountResponse);
+      countTotalRecords.value = getVocabularyCountResponse.data;
 
-      const getWordListResponse = await getWordList(bookId, pageSize.value, currentPage.value);
-      checkResponse(getWordListResponse);
-      words = getWordListResponse.data;
+      const getVocabularyListResponse = await getVocabularyList(vocabularySetId, pageSize.value, currentPage.value);
+      checkResponse(getVocabularyListResponse);
+      vocabularies = getVocabularyListResponse.data;
       dataLoaded.value = true;
     }
 );
 
 const handleCurrentChange = async () => {
   dataLoaded.value = false;
-  const getWordListResponse = await getWordList(bookId, pageSize.value, currentPage.value);
-  checkResponse(getWordListResponse);
-  words = getWordListResponse.data;
+  const getVocabularyListResponse = await getVocabularyList(vocabularySetId, pageSize.value, currentPage.value);
+  checkResponse(getVocabularyListResponse);
+  vocabularies = getVocabularyListResponse.data;
   dataLoaded.value = true;
 };
 
 const handleSizeChange = async () => {
   dataLoaded.value = false;
-  const getWordListResponse = await getWordList(bookId, pageSize.value, currentPage.value);
-  checkResponse(getWordListResponse)
-  words = getWordListResponse.data;
+  const getVocabularyListResponse = await getVocabularyList(vocabularySetId, pageSize.value, currentPage.value);
+  checkResponse(getVocabularyListResponse)
+  vocabularies = getVocabularyListResponse.data;
   dataLoaded.value = true;
 }
 
-const word = ref(null);
+const vocabulary = ref(null);
 const editFormVisible = ref(false);
 
 
-const handleDeleteEntry = async (row) => {
+const handleDeleteVocabulary = async (row) => {
   ElNotification({
     title: '删除条目',
     message: '条目删除中, 请稍等...',
     type: 'info',
     duration: 1000,
   });
-  const deleteEntryResponse = await deleteEntry(row.id);
-  checkResponse(deleteEntryResponse);
-  if (deleteEntryResponse.code === 0) {
+  const deleteVocabularyResponse = await deleteVocabulary(row.id);
+  checkResponse(deleteVocabularyResponse);
+  if (deleteVocabularyResponse.code === 0) {
     dataLoaded.value = false;
-    const getEntryCountResponse = await getWordCount(bookId);
-    checkResponse(getEntryCountResponse);
-    countTotalRecords.value = getEntryCountResponse.data;
-    const getEntryListResponse = await getWordList(bookId, pageSize.value, currentPage.value);
-    checkResponse(getEntryListResponse);
-    words = getEntryListResponse.data;
+    const getVocabularyCountResponse = await getVocabularyCount(vocabularySetId);
+    checkResponse(getVocabularyCountResponse);
+    countTotalRecords.value = getVocabularyCountResponse.data;
+    const getVocabularyListResponse = await getVocabularyList(vocabularySetId, pageSize.value, currentPage.value);
+    checkResponse(getVocabularyListResponse);
+    vocabularies = getVocabularyListResponse.data;
     dataLoaded.value = true;
     ElNotification({
       title: 'Success',
@@ -220,8 +220,8 @@ const disabledDateToReview = (date) => {
 }
 
 const dateToReviewEdit = ref(0)
-const handleEditWord = (row) => {
-  word.value = row;
+const handleEditVocabulary = (row) => {
+  vocabulary.value = row;
   const dateNumber = row.date_to_review;
   const year = Math.floor(dateNumber / 10000);
   const month = Math.floor((dateNumber % 10000) / 100) - 1; // 月份是从0开始的，所以需要减1
@@ -245,20 +245,20 @@ const confirmUpdate = async () => {
   const month = date.getMonth() + 1;
   const day = date.getDate();
 
-  word.value.date_to_review = year * 10000 + month * 100 + day;
+  vocabulary.value.date_to_review = year * 10000 + month * 100 + day;
 
-  const updateEntryResponse = await updateEntry(
-      word.value.id,
-      word.value.word,
-      word.value.meaning,
-      word.value.book_id,
-      word.value.note,
-      word.value.unwanted,
-      word.value.study_count,
-      word.value.date_to_review,
-      word.value.created_at,
+  const updateVocabularyResponse = await updateVocabulary(
+      vocabulary.value.id,
+      vocabulary.value.vocabulary,
+      vocabulary.value.meaning,
+      vocabulary.value.vocabulary_set_id,
+      vocabulary.value.note,
+      vocabulary.value.unwanted,
+      vocabulary.value.study_count,
+      vocabulary.value.date_to_review,
+      vocabulary.value.created_at,
   )
-  checkResponse(updateEntryResponse);
+  checkResponse(updateVocabularyResponse);
   dataLoaded.value = true;
 }
 
@@ -267,18 +267,18 @@ const showAddDialog = () => {
   addFormVisible.value = true;
 }
 
-const newWord = reactive({
-  word: '',
+const newVocabulary = reactive({
+  vocabulary: '',
   meaning: '',
   note: '',
 })
 const cancelAdd = () => {
   addFormVisible.value = false;
-  newWord.word = '';
-  newWord.meaning = '';
-  newWord.note = '';
+  newVocabulary.vocabulary = '';
+  newVocabulary.meaning = '';
+  newVocabulary.note = '';
 }
-const handleAddWordError = (response) => {
+const handleAddVocabularyError = (response) => {
   ElNotification({
     title: 'Error',
     message: response.message,
@@ -289,9 +289,9 @@ const handleAddWordError = (response) => {
 const confirmAdd = async () => {
   addFormVisible.value = false;
   dataLoaded.value = false;
-  const addEntryResponse = await AddEntry(bookId, newWord.word, newWord.meaning, newWord.note);
-  checkResponse(addEntryResponse);
-  if (addEntryResponse.code === 0) {
+  const addVocabularyResponse = await AddVocabulary(vocabularySetId, newVocabulary.vocabulary, newVocabulary.meaning, newVocabulary.note);
+  checkResponse(addVocabularyResponse);
+  if (addVocabularyResponse.code === 0) {
     ElNotification({
       title: 'Success',
       message: '添加成功',
@@ -299,18 +299,18 @@ const confirmAdd = async () => {
       duration: 1000,
     });
   } else {
-    handleAddWordError(addEntryResponse);
+    handleAddVocabularyError(addVocabularyResponse);
   }
-  const getWordCountResponse = await getWordCount(bookId);
-  checkResponse(getWordCountResponse);
-  countTotalRecords.value = getWordCountResponse.data.data;
-  const getWordListResponse = await getWordList(bookId, pageSize.value, currentPage.value);
-  checkResponse(getWordListResponse);
-  words = getWordListResponse.data;
+  const getVocabularyCountResponse = await getVocabularyCount(vocabularySetId);
+  checkResponse(getVocabularyCountResponse);
+  countTotalRecords.value = getVocabularyCountResponse.data.data;
+  const getVocabularyListResponse = await getVocabularyList(vocabularySetId, pageSize.value, currentPage.value);
+  checkResponse(getVocabularyListResponse);
+  vocabularies = getVocabularyListResponse.data;
   dataLoaded.value = true;
-  newWord.word = '';
-  newWord.meaning = '';
-  newWord.note = '';
+  newVocabulary.vocabulary = '';
+  newVocabulary.meaning = '';
+  newVocabulary.note = '';
 }
 </script>
 

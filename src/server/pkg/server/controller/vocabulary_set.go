@@ -13,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AddBook(c *gin.Context) {
-	var book *model.Book
+func AddVocabularySet(c *gin.Context) {
+	var vocabularySet *model.VocabularySet
 	userID, err := util.GetUserID(c)
 	if err != nil {
 		util.JsonHttpResponse(c, 2, err.Error(), nil)
@@ -25,36 +25,36 @@ func AddBook(c *gin.Context) {
 		util.JsonHttpResponse(c, 1, "用户不存在", nil)
 		return
 	}
-	if err := c.ShouldBind(&book); err != nil {
+	if err := c.ShouldBind(&vocabularySet); err != nil {
 		util.JsonHttpResponse(c, 1, "参数不合法", nil)
 		return
 	}
-	if _, found := dao.FindBookByTitle(userID, book.Title); found {
+	if _, found := dao.FindVocabularySetByTitle(userID, vocabularySet.Title); found {
 		util.JsonHttpResponse(c, 1, "相同标题的词书已存在, 请换一个标题", nil)
 		return
 	}
-	book.UserID = user.ID
+	vocabularySet.UserID = user.ID
 
 	file, _ := c.FormFile("file")
 	if file == nil {
-		book = dao.AddBook(book)
-		util.JsonHttpResponse(c, 0, "成功创建了一个空词书", book)
+		vocabularySet = dao.AddVocabularySet(vocabularySet)
+		util.JsonHttpResponse(c, 0, "成功创建了一个空词书", vocabularySet)
 		return
 	} else {
 		fileSize := file.Size
-		if fileSize > conf.Cfg.Book.MaxFileSize {
+		if fileSize > conf.Cfg.VocabularySet.MaxFileSize {
 			util.JsonHttpResponse(c, 1, "文件大小超过限制(10M)，请重新选择文件", nil)
 			return
 		}
-		var entries []*model.Entry
+		var vocabularies []*model.Vocabulary
 		if strings.HasSuffix(file.Filename, ".txt") {
-			entries, err = util.ParseTxtFile(c)
+			vocabularies, err = util.ParseTxtFile(c)
 			if err != nil {
 				util.JsonHttpResponse(c, 1, err.Error(), nil)
 				return
 			}
 		} else if strings.HasSuffix(file.Filename, ".xlsx") {
-			entries, err = util.ParseXlsxFile(c)
+			vocabularies, err = util.ParseXlsxFile(c)
 			if err != nil {
 				util.JsonHttpResponse(c, 1, err.Error(), nil)
 				return
@@ -64,25 +64,25 @@ func AddBook(c *gin.Context) {
 			return
 		}
 
-		path := filepath.Join(conf.Cfg.Book.UploadPath, util.DatetimeToString(time.Now()), file.Filename)
-		book.FilePath = path
-		book.MD5 = util.GetFileMD5(path)
-		book = dao.AddBook(book)
-		for i := 0; i < len(entries); i++ {
-			entries[i].UserID = user.ID
-			entries[i].BookID = book.ID
+		path := filepath.Join(conf.Cfg.VocabularySet.UploadPath, util.DatetimeToString(time.Now()), file.Filename)
+		vocabularySet.FilePath = path
+		vocabularySet.MD5 = util.GetFileMD5(path)
+		vocabularySet = dao.AddVocabularySet(vocabularySet)
+		for i := 0; i < len(vocabularies); i++ {
+			vocabularies[i].UserID = user.ID
+			vocabularies[i].VocabularySetID = vocabularySet.ID
 		}
-		dao.BatchInsertEntry(entries)
+		dao.BatchInsertVocabulary(vocabularies)
 		_ = c.SaveUploadedFile(file, path)
-		util.JsonHttpResponse(c, 0, "success", book)
+		util.JsonHttpResponse(c, 0, "success", vocabularySet)
 	}
 }
 
-func DeleteBookByID(c *gin.Context) {
-	if bookID, err := strconv.Atoi(c.Param("id")); err != nil {
+func DeleteVocabularySetByID(c *gin.Context) {
+	if vocabularySetID, err := strconv.Atoi(c.Param("id")); err != nil {
 		util.JsonHttpResponse(c, 1, "id值不合法", nil)
 	} else {
-		if book, found := dao.FindBookByID(bookID); !found {
+		if vocabularySet, found := dao.FindVocabularySetByID(vocabularySetID); !found {
 			util.JsonHttpResponse(c, 1, "该词书不存在, 无法删除", nil)
 		} else {
 			userID, err := util.GetUserID(c)
@@ -95,42 +95,42 @@ func DeleteBookByID(c *gin.Context) {
 				util.JsonHttpResponse(c, 1, "用户不存在", nil)
 				return
 			}
-			if user.Level != 0 && user.ID != book.UserID {
+			if user.Level != 0 && user.ID != vocabularySet.UserID {
 				util.JsonHttpResponse(c, 1, "您没有权限删除该词书", nil)
 				return
 			}
-			dao.DeleteBookByID(bookID)
+			dao.DeleteVocabularySetByID(vocabularySetID)
 			util.JsonHttpResponse(c, 0, "词书删除成功", nil)
 		}
 	}
 }
 
-func UpdateBook(c *gin.Context) {
-	var book *model.Book
-	if err := c.ShouldBind(&book); err != nil {
+func UpdateVocabularySet(c *gin.Context) {
+	var vocabularySet *model.VocabularySet
+	if err := c.ShouldBind(&vocabularySet); err != nil {
 		util.JsonHttpResponse(c, 1, "参数不合法", nil)
 		return
 	}
-	if _, found := dao.FindBookByID(book.ID); !found {
+	if _, found := dao.FindVocabularySetByID(vocabularySet.ID); !found {
 		util.JsonHttpResponse(c, 1, "该词书不存在", nil)
 	} else {
-		util.JsonHttpResponse(c, 0, "词书更新成功", dao.UpdateBook(book))
+		util.JsonHttpResponse(c, 0, "词书更新成功", dao.UpdateVocabularySet(vocabularySet))
 	}
 }
 
-func FindBookByID(c *gin.Context) {
-	if bookID, err := strconv.Atoi(c.Param("id")); err != nil {
+func FindVocabularySetByID(c *gin.Context) {
+	if vocabularySetID, err := strconv.Atoi(c.Param("id")); err != nil {
 		util.JsonHttpResponse(c, 1, "词书查询失败, 请输入合法的ID值", nil)
 	} else {
-		if book, found := dao.FindBookByID(bookID); !found {
+		if vocabularySet, found := dao.FindVocabularySetByID(vocabularySetID); !found {
 			util.JsonHttpResponse(c, 1, "没查找到结果", nil)
 		} else {
-			util.JsonHttpResponse(c, 0, "success", book)
+			util.JsonHttpResponse(c, 0, "success", vocabularySet)
 		}
 	}
 }
 
-func ListBook(c *gin.Context) {
+func ListVocabularySet(c *gin.Context) {
 	pageSize, err := strconv.Atoi(c.Param("page_size"))
 	if err != nil {
 		util.JsonHttpResponse(c, 1, "page_size不合法", nil)
@@ -141,10 +141,10 @@ func ListBook(c *gin.Context) {
 		util.JsonHttpResponse(c, 1, "current_page不合法", nil)
 		return
 	}
-	util.JsonHttpResponse(c, 0, "success", dao.ListBook(pageSize, currentPage))
+	util.JsonHttpResponse(c, 0, "success", dao.ListVocabularySet(pageSize, currentPage))
 }
 
-func FindBookByCategory(c *gin.Context) {
+func FindVocabularySetByCategory(c *gin.Context) {
 	category := c.Param("category")
 	pageSize, err := strconv.Atoi(c.Param("page_size"))
 	if err != nil {
@@ -156,14 +156,14 @@ func FindBookByCategory(c *gin.Context) {
 		util.JsonHttpResponse(c, 1, "current_page不合法", nil)
 		return
 	}
-	util.JsonHttpResponse(c, 0, "success", dao.FindBooksByCategory(category, pageSize, currentPage))
+	util.JsonHttpResponse(c, 0, "success", dao.FindVocabularySetsByCategory(category, pageSize, currentPage))
 }
 
-func CountBook(c *gin.Context) {
+func CountVocabularySet(c *gin.Context) {
 	userID, err := util.GetUserID(c)
 	if err != nil {
 		util.JsonHttpResponse(c, 2, err.Error(), nil)
 		return
 	}
-	util.JsonHttpResponse(c, 0, "success", dao.CountBook(userID))
+	util.JsonHttpResponse(c, 0, "success", dao.CountVocabularySet(userID))
 }

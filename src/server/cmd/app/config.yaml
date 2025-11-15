@@ -40,7 +40,7 @@ sqlite:
   conn_max_lifetime: 1
 
 # 书籍相关配置
-book:
+vocabulary_set:
   # 书籍标题最大长度
   max_title_length: 32
   # 书籍分类名称最大长度
@@ -48,12 +48,12 @@ book:
   # 书籍文件最大大小（字节）
   max_file_size: 10485760
   # 书籍文件上传路径
-  upload_path: ./uploads/book
+  upload_path: ./uploads/vocabulary-set
 
 # 词条相关配置
-entry:
+vocabulary:
   # 单词最大长度
-  max_word_length: 128
+  max_vocabulary_length: 128
   # 释义最大长度
   max_meaning_length: 20480
   # 笔记最大长度

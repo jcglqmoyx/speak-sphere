@@ -26,15 +26,15 @@ type DBConfig struct {
 	ConnMaxLifetime int    `yaml:"conn_max_lifetime"`
 }
 
-type BookConfig struct {
+type VocabularySetConfig struct {
 	MaxTitleLength    int    `yaml:"max_title_length"`
 	MaxCategoryLength int    `yaml:"max_category_length"`
 	MaxFileSize       int64  `yaml:"max_file_size"`
 	UploadPath        string `yaml:"upload_path"`
 }
 
-type EntryConfig struct {
-	MaxWordLength       int `yaml:"max_word_length"`
+type VocabularyConfig struct {
+	MaxVocabularyLength int `yaml:"max_vocabulary_length"`
 	MaxMeaningLength    int `yaml:"max_meaning_length"`
 	MaxNoteLength       int `yaml:"max_note_length"`
 	DefaultDateToReview int `yaml:"default_date_to_review"`
@@ -48,14 +48,14 @@ type DictionaryConfig struct {
 }
 
 type Config struct {
-	Mode       string            `yaml:"mode"`
-	Server     *ServerConfig     `yaml:"server"`
-	JWT        *JWTConfig        `yaml:"jwt"`
-	Log        *LogConfig        `yaml:"log"`
-	Sqlite     *DBConfig         `yaml:"sqlite"`
-	Book       *BookConfig       `yaml:"book"`
-	Entry      *EntryConfig      `yaml:"entry"`
-	Dictionary *DictionaryConfig `yaml:"dictionary"`
+	Mode          string               `yaml:"mode"`
+	Server        *ServerConfig        `yaml:"server"`
+	JWT           *JWTConfig           `yaml:"jwt"`
+	Log           *LogConfig           `yaml:"log"`
+	Sqlite        *DBConfig            `yaml:"sqlite"`
+	VocabularySet *VocabularySetConfig `yaml:"vocabulary_set"`
+	Vocabulary    *VocabularyConfig    `yaml:"vocabulary"`
+	Dictionary    *DictionaryConfig    `yaml:"dictionary"`
 }
 
 var Cfg Config

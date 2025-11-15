@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export async function updateUser(username, email, avatar, current_book_id, daily_count, times_counted_as_known, review_frequency_formula, llm_service_provider, llm_token, llm_model) {
+export async function updateUser(username, email, avatar, current_vocabulary_set_id, daily_count, times_counted_as_known, review_frequency_formula, llm_service_provider, llm_token, llm_model) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
@@ -9,7 +9,7 @@ export async function updateUser(username, email, avatar, current_book_id, daily
             username,
             email,
             avatar,
-            current_book_id,
+            current_vocabulary_set_id,
             daily_count,
             times_counted_as_known,
             review_frequency_formula,
@@ -18,8 +18,7 @@ export async function updateUser(username, email, avatar, current_book_id, daily
             llm_model,
         }, {
             headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`, 'Content-Type': 'application/json',
             },
         });
 

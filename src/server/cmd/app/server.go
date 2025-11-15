@@ -43,8 +43,8 @@ func Run() {
 	r.Use(router.CorsMiddleware())
 	r.Use(router.AuthMiddleware())
 
-	router.RegisterBookRouter(r)
-	router.RegisterEntryRouter(r)
+	router.RegisterVocabularySetRouter(r)
+	router.RegisterVocabularyRouter(r)
 	router.RegisterDictionaryRouter(r)
 	router.RegisterUserRouter(r)
 	router.RegisterLLMServiceRouter(r)

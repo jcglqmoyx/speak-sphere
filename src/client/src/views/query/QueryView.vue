@@ -3,7 +3,7 @@
     <div class="query-container">
       <div class="search-section">
         <el-input
-            v-model="searchWord"
+            v-model="searchVocabulary"
             placeholder="输入要查询的单词"
             size="large"
             @keyup.enter="handleSearch"
@@ -16,10 +16,10 @@
       </div>
 
       <div v-if="showResults" class="results-section">
-        <el-card class="word-card">
+        <el-card class="vocabulary-card">
           <template #header>
             <div class="card-header">
-              <span class="word-title">{{ currentWord }}</span>
+              <span class="vocabulary-title">{{ currentVocabulary }}</span>
               <div class="header-actions">
                 <el-tooltip content="使用LLM搜索单词" placement="top">
                   <el-button circle @click="toggleLLMPanel">
@@ -29,7 +29,8 @@
                   </el-button>
                 </el-tooltip>
                 <el-tooltip content="收藏单词" placement="top">
-                  <el-button circle @click="handleAddToBook" :disabled="!searchWord.trim()" class="favorite-btn">
+                  <el-button circle @click="handleAddToVocabularySet" :disabled="!searchVocabulary.trim()"
+                             class="favorite-btn">
                     <el-icon>
                       <Star/>
                     </el-icon>
@@ -46,11 +47,11 @@
             </div>
           </template>
 
-          <div class="word-content" @click="handleWordContentClick">
+          <div class="vocabulary-content" @click="handleVocabularyContentClick">
             <div v-if="isLoading" class="loading-container">
               <el-skeleton :rows="5" animated/>
             </div>
-            <div v-else-if="wordMeaning" class="meaning" v-html="wordMeaning"></div>
+            <div v-else-if="vocabularyMeaning" class="meaning" v-html="vocabularyMeaning"></div>
             <div v-else class="no-meaning">该单词暂无释义</div>
           </div>
         </el-card>
@@ -74,7 +75,8 @@
     <el-drawer v-model="showSearchDrawer" title="词典搜索" :with-header="true">
       <div class="dictionary-list">
         <p v-for="(dictionary, index) in dictionaries" :key="dictionary.id" class="dictionary-item">
-        <a href="#" @click.prevent="handleDictionaryClick(dictionary)" :class="{'wiktionary-link': dictionary.title.toLowerCase().includes('wiktionary')}">
+          <a href="#" @click.prevent="handleDictionaryClick(dictionary)"
+             :class="{'wiktionary-link': dictionary.title.toLowerCase().includes('wiktionary')}">
             <strong>{{ index + 1 }}. {{ dictionary.title }}</strong>
           </a>
           <el-divider/>
@@ -86,26 +88,30 @@
     <div v-if="showWiktionaryFullscreen" class="wiktionary-fullscreen-modal">
       <div class="wiktionary-fullscreen-content">
         <button class="close-fullscreen-btn" @click="showWiktionaryFullscreen = false">
-          <el-icon><Close /></el-icon>
+          <el-icon>
+            <Close/>
+          </el-icon>
         </button>
-        <iframe 
-          :src="currentWiktionaryUrl" 
-          class="wiktionary-fullscreen-iframe"
-          loading="lazy"
+        <iframe
+            :src="currentWiktionaryUrl"
+            class="wiktionary-fullscreen-iframe"
+            loading="lazy"
         ></iframe>
       </div>
     </div>
 
     <!-- 收藏单词对话框 -->
-    <el-dialog v-model="showAddToBookDialog" title="收藏单词" width="500px">
-      <div class="dialog-title">将单词 "<strong>{{ searchWord }}</strong>" 添加到词书</div>
+    <el-dialog v-model="showAddToVocabularySetDialog" title="收藏单词" width="500px">
+      <div class="dialog-title">将单词 "<strong>{{ searchVocabulary }}</strong>" 添加到词书</div>
       <el-form>
         <el-form-item label="选择词书">
-          <el-radio-group v-model="selectedBookId" class="book-radio-group">
-            <el-radio v-for="book in books" :key="book.id" :label="book.id" class="book-radio">
-              <div class="book-radio-content">
-                <span>{{ book.title }}</span>
-                <el-tag v-if="bookWordExistsMap[book.id]" type="success" size="small" class="exists-tag">
+          <el-radio-group v-model="selectedVocabularySetId" class="vocabulary-set-radio-group">
+            <el-radio v-for="vocabularySet in vocabularySets" :key="vocabularySet.id" :label="vocabularySet.id"
+                      class="vocabulary-set-radio">
+              <div class="vocabulary-set-radio-content">
+                <span>{{ vocabularySet.title }}</span>
+                <el-tag v-if="vocabularySetVocabularyExistsMap[vocabularySet.id]" type="success" size="small"
+                        class="exists-tag">
                   已存在
                 </el-tag>
               </div>
@@ -115,14 +121,14 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="showAddToBookDialog = false">取消</el-button>
+          <el-button @click="showAddToVocabularySetDialog = false">取消</el-button>
           <el-button
               type="primary"
-              @click="confirmAddToBook"
-              :disabled="!selectedBookId"
-              :class="{ 'warning-btn': selectedBookId && isWordInSelectedBook() }"
+              @click="confirmAddToVocabularySet"
+              :disabled="!selectedVocabularySetId"
+              :class="{ 'warning-btn': selectedVocabularySetId && isVocabularyInSelectedVocabularySet() }"
           >
-            {{ selectedBookId && isWordInSelectedBook() ? '无需重复添加' : '确认添加' }}
+            {{ selectedVocabularySetId && isVocabularyInSelectedVocabularySet() ? '无需重复添加' : '确认添加' }}
           </el-button>
         </span>
       </template>
@@ -131,7 +137,7 @@
     <!-- LLM查询面板 -->
     <LLMQueryPanel
         v-if="showLLMPanel"
-        :current-word="currentWord"
+        :current-vocabulary="currentVocabulary"
         @close="showLLMPanel = false"
     />
   </ContentBase>
@@ -159,26 +165,26 @@ import {ChatDotRound, Close, Search, Star} from '@element-plus/icons-vue';
 import ContentBase from '@/components/ContentBase.vue';
 import LLMQueryPanel from '@/components/LLMQueryPanel.vue';
 import {getDictionaryList} from '@/assets/js/module/dictionary/query';
-import {getBookList} from '@/assets/js/module/book/query';
-import {AddEntry} from '@/assets/js/module/entry/add';
-import {checkWordInBook} from '@/assets/js/module/entry/query';
-import {formatDefinition, getWordDefinition} from '@/assets/js/util/dictionary_api';
+import {getVocabularySetList} from '@/assets/js/module/vocabulary_set/query';
+import {AddVocabulary} from '@/assets/js/module/vocabulary/add';
+import {checkVocabularyInVocabularySet} from '@/assets/js/module/vocabulary/query';
+import {formatDefinition, getVocabularyDefinition} from '@/assets/js/util/dictionary_api';
 
-const searchWord = ref('');
-const currentWord = ref('');
-const wordMeaning = ref('');
+const searchVocabulary = ref('');
+const currentVocabulary = ref('');
+const vocabularyMeaning = ref('');
 const isLoading = ref(false);
 const showResults = ref(false);
 const showSearchDrawer = ref(false);
 const showEditNoteDrawer = ref(false);
-const showAddToBookDialog = ref(false);
+const showAddToVocabularySetDialog = ref(false);
 const showLLMPanel = ref(false);
 const showWiktionaryFullscreen = ref(false);
 const currentWiktionaryUrl = ref('');
 const dictionaries = ref([]);
-const books = ref([]);
-const selectedBookId = ref(null);
-const bookWordExistsMap = ref({}); // 存储每个词书是否包含当前单词
+const vocabularySets = ref([]);
+const selectedVocabularySetId = ref(null);
+const vocabularySetVocabularyExistsMap = ref({}); // 存储每个词书是否包含当前单词
 
 onMounted(async () => {
   // 加载词典列表
@@ -188,14 +194,14 @@ onMounted(async () => {
   }
 
   // 加载词书列表
-  const bookResponse = await getBookList(100000000, 1);
-  if (bookResponse && bookResponse.data) {
-    books.value = bookResponse.data;
+  const vocabularySetResponse = await getVocabularySetList(100000000, 1);
+  if (vocabularySetResponse && vocabularySetResponse.data) {
+    vocabularySets.value = vocabularySetResponse.data;
   }
 });
 
 // 处理单词内容区域的点击事件
-const handleWordContentClick = (event) => {
+const handleVocabularyContentClick = (event) => {
   // 检查点击的是否是发音按钮
   if (event.target.classList.contains('audio-btn')) {
     const audioUrl = event.target.getAttribute('data-audio');
@@ -206,22 +212,22 @@ const handleWordContentClick = (event) => {
 };
 
 const handleSearch = async () => {
-  if (searchWord.value.trim()) {
-    currentWord.value = searchWord.value.trim();
+  if (searchVocabulary.value.trim()) {
+    currentVocabulary.value = searchVocabulary.value.trim();
     isLoading.value = true;
     showResults.value = true;
 
     try {
-      const result = await getWordDefinition(currentWord.value);
+      const result = await getVocabularyDefinition(currentVocabulary.value);
 
       if (result.success) {
-        wordMeaning.value = formatDefinition(result);
+        vocabularyMeaning.value = formatDefinition(result);
       } else {
-        wordMeaning.value = 'Sorry, the word was not found. Please check the spelling and try again.';
+        vocabularyMeaning.value = 'Sorry, the vocabulary was not found. Please check the spelling and try again.';
       }
     } catch (error) {
-      console.error('Failed to fetch word definition:', error);
-      wordMeaning.value = 'Search failed. Please check your network connection and try again.';
+      console.error('Failed to fetch vocabulary definition:', error);
+      vocabularyMeaning.value = 'Search failed. Please check your network connection and try again.';
     } finally {
       isLoading.value = false;
     }
@@ -242,64 +248,64 @@ const handleKeydown = (event) => {
     if (number === 0) number = 10;
     if (number <= dictionaries.value.length && showResults.value) {
       const dictionary = dictionaries.value[number - 1];
-      window.open(dictionary.prefix + (currentWord.value || '') + (dictionary.suffix || ''), '_blank');
+      window.open(dictionary.prefix + (currentVocabulary.value || '') + (dictionary.suffix || ''), '_blank');
     }
   }
 };
 
-const handleAddToBook = async () => {
-  if (!searchWord.value.trim()) {
+const handleAddToVocabularySet = async () => {
+  if (!searchVocabulary.value.trim()) {
     return;
   }
 
-  selectedBookId.value = null;
-  bookWordExistsMap.value = {}; // 清空之前的记录
-  showAddToBookDialog.value = true;
+  selectedVocabularySetId.value = null;
+  vocabularySetVocabularyExistsMap.value = {}; // 清空之前的记录
+  showAddToVocabularySetDialog.value = true;
 
   // 检查每个词书是否已包含当前单词
-  if (books.value.length > 0) {
-    const word = searchWord.value.trim();
+  if (vocabularySets.value.length > 0) {
+    const vocabulary = searchVocabulary.value.trim();
 
-    for (const book of books.value) {
+    for (const vocabularySet of vocabularySets.value) {
       try {
-        const response = await checkWordInBook(word, book.id);
+        const response = await checkVocabularyInVocabularySet(vocabulary, vocabularySet.id);
         const exists = response && response.code === 0 && response.data.exists;
-        bookWordExistsMap.value[book.id] = exists;
+        vocabularySetVocabularyExistsMap.value[vocabularySet.id] = exists;
 
-        if (exists && !selectedBookId.value) {
-          selectedBookId.value = book.id;
+        if (exists && !selectedVocabularySetId.value) {
+          selectedVocabularySetId.value = vocabularySet.id;
         }
       } catch (error) {
-        console.error(`检查词书 ${book.title} 失败:`, error);
-        bookWordExistsMap.value[book.id] = false;
+        console.error(`检查词书 ${vocabularySet.title} 失败:`, error);
+        vocabularySetVocabularyExistsMap.value[vocabularySet.id] = false;
       }
     }
   }
 };
 
-const isWordInSelectedBook = () => {
-  if (!selectedBookId.value) {
+const isVocabularyInSelectedVocabularySet = () => {
+  if (!selectedVocabularySetId.value) {
     return false;
   }
-  return !!bookWordExistsMap.value[selectedBookId.value];
+  return !!vocabularySetVocabularyExistsMap.value[selectedVocabularySetId.value];
 };
 
-const confirmAddToBook = async () => {
-  if (!selectedBookId.value || !searchWord.value.trim()) {
+const confirmAddToVocabularySet = async () => {
+  if (!selectedVocabularySetId.value || !searchVocabulary.value.trim()) {
     return;
   }
 
   try {
-    const response = await AddEntry(
-        selectedBookId.value,
-        searchWord.value.trim(),
-        wordMeaning.value || '暂无释义', // 使用当前显示的释义，如果没有则使用默认值
+    const response = await AddVocabulary(
+        selectedVocabularySetId.value,
+        searchVocabulary.value.trim(),
+        vocabularyMeaning.value || '暂无释义', // 使用当前显示的释义，如果没有则使用默认值
         ''
     );
 
     if (response && response.code === 0) {
       ElMessage.success('添加单词成功');
-      showAddToBookDialog.value = false;
+      showAddToVocabularySetDialog.value = false;
     } else {
       const errorMsg = response ? response.message : '添加失败，请重试';
       ElMessage.error(errorMsg);
@@ -312,19 +318,19 @@ const confirmAddToBook = async () => {
 
 // 切换LLM查询面板
 const toggleLLMPanel = () => {
-  if (showResults.value && currentWord.value) {
+  if (showResults.value && currentVocabulary.value) {
     showLLMPanel.value = !showLLMPanel.value;
   }
 };
 
 // 处理词典点击事件
 const handleDictionaryClick = (dictionary) => {
-  const url = dictionary.prefix + (currentWord.value || '') + (dictionary.suffix || '');
-  
+  const url = dictionary.prefix + (currentVocabulary.value || '') + (dictionary.suffix || '');
+
   // 如果是Wiktionary并且在移动端，使用全屏模态框
   const isWiktionary = dictionary.title.toLowerCase().includes('wiktionary');
   const isMobile = window.innerWidth <= 768;
-  
+
   if (isWiktionary && isMobile) {
     currentWiktionaryUrl.value = url;
     showWiktionaryFullscreen.value = true;
@@ -385,13 +391,13 @@ const playAudio = (audioUrl) => {
 }
 
 .welcome-card,
-.word-card {
+.vocabulary-card {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
 }
 
-.word-card {
+.vocabulary-card {
   margin: 20px 0;
 }
 
@@ -401,7 +407,7 @@ const playAudio = (audioUrl) => {
   align-items: center;
 }
 
-.word-title {
+.vocabulary-title {
   font-size: 24px;
   font-weight: bold;
   color: var(--el-text-color-primary);
@@ -412,7 +418,7 @@ const playAudio = (audioUrl) => {
   gap: 10px;
 }
 
-.word-content {
+.vocabulary-content {
   padding: 20px 0;
 }
 
@@ -428,13 +434,13 @@ const playAudio = (audioUrl) => {
   }
 
   .welcome-card,
-  .word-card {
+  .vocabulary-card {
     width: 80%;
     max-width: 80%;
     margin: 0 auto;
   }
 
-  .word-title {
+  .vocabulary-title {
     font-size: 28px;
   }
 
@@ -443,7 +449,7 @@ const playAudio = (audioUrl) => {
     line-height: 1.8;
   }
 
-  :deep(.meaning .word-title) {
+  :deep(.meaning .vocabulary-title) {
     font-size: 40px;
   }
 }
@@ -461,13 +467,13 @@ const playAudio = (audioUrl) => {
   }
 
   .welcome-card,
-  .word-card {
+  .vocabulary-card {
     width: 70%;
     max-width: 70%;
     margin: 0 auto;
   }
 
-  .word-title {
+  .vocabulary-title {
     font-size: 32px;
   }
 
@@ -480,7 +486,7 @@ const playAudio = (audioUrl) => {
     line-height: 1.8;
   }
 
-  :deep(.meaning .word-title) {
+  :deep(.meaning .vocabulary-title) {
     font-size: 48px;
     margin-bottom: 15px;
   }
@@ -491,7 +497,7 @@ const playAudio = (audioUrl) => {
   color: var(--el-text-color-regular);
 }
 
-:deep(.meaning .word-title) {
+:deep(.meaning .vocabulary-title) {
   font-weight: bold;
   color: var(--el-color-primary);
   margin-bottom: 10px;
@@ -572,7 +578,7 @@ const playAudio = (audioUrl) => {
     height: 98%;
     border-radius: 6px;
   }
-  
+
   .close-fullscreen-btn {
     width: 45px;
     height: 45px;
@@ -587,7 +593,7 @@ const playAudio = (audioUrl) => {
     height: 100%;
     border-radius: 0;
   }
-  
+
   .close-fullscreen-btn {
     width: 50px;
     height: 50px;
@@ -797,13 +803,13 @@ const playAudio = (audioUrl) => {
   color: #c0c4cc;
 }
 
-.book-radio-group {
+.vocabulary-set-radio-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.book-radio {
+.vocabulary-set-radio {
   display: flex;
   align-items: center;
   padding: 8px;
@@ -812,7 +818,7 @@ const playAudio = (audioUrl) => {
   transition: all 0.3s;
 }
 
-.book-radio:hover {
+.vocabulary-set-radio:hover {
   border-color: var(--el-color-primary);
   background-color: var(--el-fill-color-lighter);
 }
@@ -823,7 +829,7 @@ const playAudio = (audioUrl) => {
   color: var(--el-text-color-primary);
 }
 
-.book-radio-content {
+.vocabulary-set-radio-content {
   display: flex;
   justify-content: space-between;
   align-items: center;

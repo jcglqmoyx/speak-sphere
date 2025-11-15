@@ -1,23 +1,23 @@
 import axios from "axios";
 
-async function updateEntry(id, word, meaning, book_id, note, unwanted, study_count, date_to_review, created_at) {
+async function updateVocabulary(id, vocabulary, meaning, vocabulary_set_id, note, unwanted, study_count, date_to_review, created_at) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
-        const url = serverLink + '/entry/update'
+        const url = serverLink + '/vocabulary/update'
         console.log(id,
-            word,
+            vocabulary,
             meaning,
-            book_id,
+            vocabulary_set_id,
             note,
             date_to_review,
             created_at,)
         ;
         const response = await axios.put(url, {
             id,
-            word,
+            vocabulary: vocabulary,
             meaning,
-            book_id,
+            vocabulary_set_id,
             note,
             unwanted,
             study_count,
@@ -39,7 +39,7 @@ async function setUnwanted(id) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
-        const url = serverLink + '/entry/update/unwanted/' + id;
+        const url = serverLink + '/vocabulary/update/unwanted/' + id;
         const response = await axios.put(url, null, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -52,11 +52,11 @@ async function setUnwanted(id) {
     }
 }
 
-async function updateEntryStudyCount(id) {
+async function updateVocabularyStudyCount(id) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
-        const url = serverLink + '/entry/update/study/count/' + id;
+        const url = serverLink + '/vocabulary/update/study/count/' + id;
         const response = await axios.put(url, null,
             {
                 headers: {
@@ -70,11 +70,11 @@ async function updateEntryStudyCount(id) {
     }
 }
 
-async function resetEntryStudyCountToZero(id) {
+async function resetVocabularyStudyCountToZero(id) {
     try {
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
-        const url = serverLink + '/entry/update/reset/' + id;
+        const url = serverLink + '/vocabulary/update/reset/' + id;
         const response = await axios.put(url, null,
             {
                 headers: {
@@ -88,4 +88,4 @@ async function resetEntryStudyCountToZero(id) {
     }
 }
 
-export {updateEntry, setUnwanted, updateEntryStudyCount, resetEntryStudyCountToZero};
+export {updateVocabulary, setUnwanted, updateVocabularyStudyCount, resetVocabularyStudyCountToZero};

@@ -14,7 +14,7 @@
           <el-row>
             <el-col :span="24">
               <p>Email: <b>{{ user.email }}</b></p>
-              <p>当前所学语书: <b>{{ bookToLearn.title }}</b></p>
+              <p>当前所学语书: <b>{{ vocabularySetToLearn.title }}</b></p>
               <p>每日新单词数: <b>{{ user.dailyCount }}</b></p>
               <p>复习频率公式: <b>{{ user.reviewFrequencyFormula }}</b></p>
               <p>点击几次“认识”算学会: <b>{{ user.timesCountedAsKnown }}</b></p>
@@ -49,11 +49,12 @@
         </el-form-item>
         <el-form-item label="当前所学词书">
           <el-dropdown split-button type="primary">
-            {{ bookToLearn.title || "选择词书" }}
+            {{ vocabularySetToLearn.title || "选择词书" }}
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-for="book in books" :key="book.id" @click="handleChooseBookToLearn(book.id)">{{
-                    book.title
+                <el-dropdown-item v-for="vocabularySet in vocabularySets" :key="vocabularySet.id"
+                                  @click="handleChooseVocabularySetToLearn(vocabularySet.id)">{{
+                    vocabularySet.title
                   }}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -105,22 +106,22 @@ import ContentBase from "@/components/ContentBase.vue";
 import {getUserProfile} from "@/assets/js/module/user/query";
 import {useStore} from "vuex";
 import {updateUser} from "@/assets/js/module/user/update";
-import {getBookList} from "@/assets/js/module/book/query";
+import {getVocabularySetList} from "@/assets/js/module/vocabulary_set/query";
 import {getThemeInstance} from "@/store/theme.js";
 import {Moon, Sunny} from "@element-plus/icons-vue";
 
-let books = reactive([]);
-let bookToLearn = reactive({
+let vocabularySets = reactive([]);
+let vocabularySetToLearn = reactive({
   id: 0,
   title: "",
 });
 
-const handleChooseBookToLearn = (id) => {
-  for (let book of books) {
-    if (book.id === id) {
-      bookToLearn.id = book.id;
-      bookToLearn.title = book.title;
-      user.currentBookID = book.id;
+const handleChooseVocabularySetToLearn = (id) => {
+  for (let vocabularySet of vocabularySets) {
+    if (vocabularySet.id === id) {
+      vocabularySetToLearn.id = vocabularySet.id;
+      vocabularySetToLearn.title = vocabularySet.title;
+      user.currentVocabularySetID = vocabularySet.id;
       break;
     }
   }
@@ -130,7 +131,7 @@ let user = reactive(
       username: "",
       email: "",
       avatar: "",
-      currentBookID: 0,
+      currentVocabularySetID: 0,
       dailyCount: 0,
       timesCountedAsKnown: 0,
       reviewFrequencyFormula: "",
@@ -152,18 +153,18 @@ onMounted(
       user.username = getUserProfileResponse.username;
       user.email = getUserProfileResponse.email;
       user.avatar = getUserProfileResponse.avatar;
-      user.currentBookID = getUserProfileResponse.current_book_id;
+      user.currentVocabularySetID = getUserProfileResponse.current_vocabularySet_id;
       user.dailyCount = getUserProfileResponse.daily_count;
       user.timesCountedAsKnown = getUserProfileResponse.times_counted_as_known;
       user.reviewFrequencyFormula = getUserProfileResponse.review_frequency_formula;
 
-      const getBookListResponse = await getBookList(100000000, 1);
-      checkResponse(getBookListResponse);
-      books = getBookListResponse.data;
-      for (let book of books) {
-        if (book.id === user.currentBookID) {
-          bookToLearn.id = book.id;
-          bookToLearn.title = book.title;
+      const getVocabularySetListResponse = await getVocabularySetList(100000000, 1);
+      checkResponse(getVocabularySetListResponse);
+      vocabularySets = getVocabularySetListResponse.data;
+      for (let vocabularySet of vocabularySets) {
+        if (vocabularySet.id === user.currentVocabularySetID) {
+          vocabularySetToLearn.id = vocabularySet.id;
+          vocabularySetToLearn.title = vocabularySet.title;
           break;
         }
       }
@@ -188,7 +189,7 @@ const confirmUpdate = async () => {
       user.username,
       user.email,
       user.avatar,
-      +user.currentBookID,
+      +user.currentVocabularySetID,
       user.dailyCount,
       user.timesCountedAsKnown,
       user.reviewFrequencyFormula,

@@ -19,7 +19,7 @@ export default {
         logout(state) {
             state.isAuthenticated = false;
             state.token = null;
-            localStorage.removeItem("book_id");
+            localStorage.removeItem("vocabulary_set_id");
             localStorage.removeItem('server_link');
             localStorage.removeItem('token');
         }

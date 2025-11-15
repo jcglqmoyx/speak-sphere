@@ -6,19 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterBookRouter(route *gin.Engine) {
-	r := route.Group("/book")
+func RegisterVocabularySetRouter(route *gin.Engine) {
+	r := route.Group("/vocabulary_set")
 
-	r.POST("/add", controller.AddBook)
+	r.POST("/add", controller.AddVocabularySet)
 
-	r.DELETE("/delete/:id", controller.DeleteBookByID)
+	r.DELETE("/delete/:id", controller.DeleteVocabularySetByID)
 
-	r.PUT("/update", controller.UpdateBook)
+	r.PUT("/update", controller.UpdateVocabularySet)
 
-	r.GET("/list/:page_size/:current_page", controller.ListBook)
-	r.GET("/:id", controller.FindBookByID)
-	r.GET("/category/:category/:page_size/:current_page", controller.FindBookByCategory)
-	r.GET("/count", controller.CountBook)
+	r.GET("/list/:page_size/:current_page", controller.ListVocabularySet)
+	r.GET("/:id", controller.FindVocabularySetByID)
+	r.GET("/category/:category/:page_size/:current_page", controller.FindVocabularySetByCategory)
+	r.GET("/count", controller.CountVocabularySet)
 }
 
 func RegisterDictionaryRouter(route *gin.Engine) {
@@ -34,24 +34,24 @@ func RegisterDictionaryRouter(route *gin.Engine) {
 	r.GET("/list", controller.ListDictionary)
 }
 
-func RegisterEntryRouter(route *gin.Engine) {
-	r := route.Group("/entry")
-	r.POST("/add", controller.AddEntry)
+func RegisterVocabularyRouter(route *gin.Engine) {
+	r := route.Group("/vocabulary")
+	r.POST("/add", controller.AddVocabulary)
 
-	r.DELETE("/delete/:id", controller.DeleteEntryByID)
+	r.DELETE("/delete/:id", controller.DeleteVocabularyByID)
 
-	r.PUT("/update", controller.UpdateEntry)
-	r.PUT("/update/unwanted/:id", controller.SetEntryUnwanted)
+	r.PUT("/update", controller.UpdateVocabulary)
+	r.PUT("/update/unwanted/:id", controller.SetVocabularyUnwanted)
 
-	r.PUT("/update/study/count/:id", controller.UpdateEntryStudyCount)
+	r.PUT("/update/study/count/:id", controller.UpdateVocabularyStudyCount)
 	r.PUT("/update/reset/:id", controller.ResetStudyCountToZero)
 
-	r.GET("/query", controller.FindEntryByID)
-	r.GET("/count/:book_id", controller.CountEntry)
-	r.GET("/list", controller.ListEntry)
-	r.GET("/learn", controller.GetEntriesToLearn)
-	r.GET("/review", controller.GetEntriesToReview)
-	r.GET("/check", controller.CheckWordInBook)
+	r.GET("/query", controller.FindVocabularyByID)
+	r.GET("/count/:vocabulary_set_id", controller.CountVocabulary)
+	r.GET("/list", controller.ListVocabulary)
+	r.GET("/learn", controller.GetVocabulariesToLearn)
+	r.GET("/review", controller.GetVocabulariesToReview)
+	r.GET("/check", controller.CheckVocabularyInVocabularySet)
 }
 
 func RegisterUserRouter(route *gin.Engine) {

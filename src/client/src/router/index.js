@@ -1,5 +1,5 @@
 import {createRouter, createWebHashHistory} from 'vue-router'
-import wordRoutes from "@/router/word";
+import vocabularyRoutes from "@/router/vocabulary";
 import authRoutes from "@/router/auth";
 import settingRoutes from "@/router/setting";
 import toolRoutes from "@/router/tool";
@@ -8,12 +8,12 @@ const routes = [
     {
         path: '/',
         name: 'home',
-        redirect: '/word',
+        redirect: '/vocabulary',
     },
     {
         path: '/404',
         name: '404',
-        redirect: '/word'
+        redirect: '/vocabulary'
     },
     {
         path: '/:pathMatch(.*)*',
@@ -24,7 +24,7 @@ const routes = [
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
-        ...wordRoutes,
+        ...vocabularyRoutes,
         ...authRoutes,
         ...settingRoutes,
         ...toolRoutes,

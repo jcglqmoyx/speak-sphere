@@ -1,13 +1,12 @@
 import axios from "axios";
 
-async function getBookCount() {
+async function getVocabularySetCount() {
     try {
         const serverLink = localStorage.getItem("server_link");
         const token = localStorage.getItem("token");
-        const response = await axios.get(serverLink + '/book/count', {
+        const response = await axios.get(serverLink + '/vocabulary_set/count', {
             headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`, 'Content-Type': 'application/json',
             },
         });
         return response.data
@@ -16,15 +15,14 @@ async function getBookCount() {
     }
 }
 
-async function getBookList(pageSize, currentPage) {
+async function getVocabularySetList(pageSize, currentPage) {
     try {
         const serverLink = localStorage.getItem("server_link");
         const token = localStorage.getItem("token");
-        const url = serverLink + '/book/list/' + pageSize + '/' + currentPage;
+        const url = serverLink + '/vocabulary_set/list/' + pageSize + '/' + currentPage;
         const response = await axios.get(url, {
             headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`, 'Content-Type': 'application/json',
             },
         });
         return response.data
@@ -33,4 +31,4 @@ async function getBookList(pageSize, currentPage) {
     }
 }
 
-export {getBookCount, getBookList}
+export {getVocabularySetCount, getVocabularySetList}

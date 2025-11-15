@@ -1,11 +1,11 @@
 <template>
   <ContentBase>
-    <WordCardView :type="`learn`"/>
+    <VocabularyCardView :type="`review`"/>
   </ContentBase>
 </template>
 
 <script setup>
-import WordCardView from "@/views/word/WordCardView.vue";
+import VocabularyCardView from "@/views/vocabulary/VocabularyCardView.vue";
 import ContentBase from "@/components/ContentBase.vue";
 </script>
 

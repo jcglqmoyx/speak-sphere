@@ -19,12 +19,12 @@ function getAudioRegionLabel(audioUrl) {
 
 /**
  * 调用字典API获取单词释义
- * @param {string} word - 要查询的单词
+ * @param {string} vocabulary - 要查询的单词
  * @returns {Promise<Object>} 返回API响应数据
  */
-async function getWordDefinition(word) {
+async function getVocabularyDefinition(vocabulary) {
     try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(vocabulary)}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -33,7 +33,7 @@ async function getWordDefinition(word) {
         const data = await response.json();
 
         // 检查是否返回有效数据
-        if (!data || !Array.isArray(data) || data.length === 0 || !data[0].word) {
+        if (!data || !Array.isArray(data) || data.length === 0 || !data[0].vocabulary) {
             throw new Error('Empty or invalid data returned from dictionary API');
         }
 
@@ -41,14 +41,14 @@ async function getWordDefinition(word) {
             success: true, data: data, source: 'dictionaryapi'
         };
     } catch (error) {
-        console.error('Error fetching word definition from dictionaryapi.dev:', error);
+        console.error('Error fetching vocabulary definition from dictionaryapi.dev:', error);
 
         // 返回wiktionary作为备用方案
         return {
             success: true, // 仍然返回success=true，因为wiktionary是有效的备选方案
             data: null,
             source: 'wiktionary',
-            wiktionaryUrl: `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`
+            wiktionaryUrl: `https://en.wiktionary.org/wiki/${encodeURIComponent(vocabulary)}`
         };
     }
 }
@@ -59,13 +59,13 @@ async function getWordDefinition(word) {
  * @returns {string} 格式化后的释义HTML字符串
  */
 function formatDefinition(apiResponse) {
-  // 如果是wiktionary源，返回iframe嵌入的HTML
-  if (apiResponse.source === 'wiktionary') {
-    const isMobile = window.innerWidth <= 768;
-    
-    if (isMobile) {
-      // 移动端：显示链接而不是内嵌iframe
-      return `
+    // 如果是wiktionary源，返回iframe嵌入的HTML
+    if (apiResponse.source === 'wiktionary') {
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+            // 移动端：显示链接而不是内嵌iframe
+            return `
         <div class="wiktionary-mobile-notice">
           <div class="wiktionary-mobile-content">
             <div class="notice-title">使用 Wiktionary 查询</div>
@@ -131,9 +131,9 @@ function formatDefinition(apiResponse) {
           }
         </style>
       `;
-    } else {
-      // 桌面端：保持原有的内嵌iframe
-      return `
+        } else {
+            // 桌面端：保持原有的内嵌iframe
+            return `
         <div class="wiktionary-container">
           <div class="wiktionary-notice">
             当前使用 Wiktionary 作为备选词典源
@@ -153,8 +153,8 @@ function formatDefinition(apiResponse) {
           ></iframe>
         </div>
       `;
+        }
     }
-  }
 
     // 原有的dictionaryapi.dev数据处理逻辑
     const apiData = apiResponse.data;
@@ -162,26 +162,26 @@ function formatDefinition(apiResponse) {
         return '<div class="no-meaning">No definition found</div>';
     }
 
-    const wordData = apiData[0];
+    const vocabularyData = apiData[0];
     let formattedHtml = '';
 
     // 单词基本信息
-    if (wordData.word) {
-        formattedHtml += `<div class="word-title">${wordData.word}</div>`;
+    if (vocabularyData.vocabulary) {
+        formattedHtml += `<div class="vocabulary-title">${vocabularyData.vocabulary}</div>`;
     }
 
     // 音标 - 优先显示有文本音标的内容
-    if (wordData.phonetics && Array.isArray(wordData.phonetics)) {
-        const phonetic = wordData.phonetics.find(p => p.text)?.text;
+    if (vocabularyData.phonetics && Array.isArray(vocabularyData.phonetics)) {
+        const phonetic = vocabularyData.phonetics.find(p => p.text)?.text;
         if (phonetic) {
             formattedHtml += `<div class="phonetic">Phonetic: ${phonetic}`;
 
             // 添加发音按钮
-            const validAudioEntries = wordData.phonetics.filter(p => p.audio && p.audio.trim() !== '');
-            if (validAudioEntries.length > 0) {
+            const validAudioVocabularies = vocabularyData.phonetics.filter(p => p.audio && p.audio.trim() !== '');
+            if (validAudioVocabularies.length > 0) {
                 formattedHtml += ' <span class="audio-buttons">';
 
-                validAudioEntries.forEach((phoneticItem, index) => {
+                validAudioVocabularies.forEach((phoneticItem, index) => {
                     const audioUrl = phoneticItem.audio;
                     let regionLabel = getAudioRegionLabel(audioUrl);
 
@@ -201,9 +201,9 @@ function formatDefinition(apiResponse) {
     }
 
     // 遍历所有词性释义
-    if (wordData.meanings && Array.isArray(wordData.meanings)) {
+    if (vocabularyData.meanings && Array.isArray(vocabularyData.meanings)) {
         formattedHtml += '<div class="meanings-container">';
-        wordData.meanings.forEach((meaning, index) => {
+        vocabularyData.meanings.forEach((meaning, index) => {
             if (meaning.partOfSpeech) {
                 formattedHtml += `<div class="part-of-speech">【${meaning.partOfSpeech}】</div>`;
             }
@@ -242,7 +242,7 @@ function formatDefinition(apiResponse) {
                 formattedHtml += `<div class="meaning-antonyms">[Antonyms] ${meaning.antonyms.join(', ')}</div>`;
             }
 
-            if (index < wordData.meanings.length - 1) {
+            if (index < vocabularyData.meanings.length - 1) {
                 formattedHtml += '<div class="meaning-separator"></div>';
             }
         });
@@ -252,4 +252,4 @@ function formatDefinition(apiResponse) {
     return formattedHtml || '<div class="no-meaning">No definition found</div>';
 }
 
-export {getWordDefinition, formatDefinition};
+export {getVocabularyDefinition, formatDefinition};

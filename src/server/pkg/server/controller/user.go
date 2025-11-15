@@ -126,15 +126,15 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	// 检查词书ID
-	if currentBookID, ok := updateData["current_book_id"].(float64); ok {
-		bookID := int(currentBookID)
-		if bookID != 0 {
-			book, found := dao.FindBookByID(bookID)
+	if currentVocabularySetID, ok := updateData["current_vocabulary_set_id"].(float64); ok {
+		vocabularySetID := int(currentVocabularySetID)
+		if vocabularySetID != 0 {
+			vocabularySet, found := dao.FindVocabularySetByID(vocabularySetID)
 			if !found {
 				util.JsonHttpResponse(c, 1, "词书不存在", nil)
 				return
 			}
-			if book.UserID != userID {
+			if vocabularySet.UserID != userID {
 				util.JsonHttpResponse(c, 1, "词书不属于该用户", nil)
 				return
 			}
@@ -199,7 +199,7 @@ func GetUserProfile(c *gin.Context) {
 			Username:               user.Username,
 			Email:                  user.Email,
 			Avatar:                 user.Avatar,
-			CurrentBookID:          user.CurrentBookID,
+			CurrentVocabularySetID: user.CurrentVocabularySetID,
 			DailyCount:             user.DailyCount,
 			TimesCountedAsKnown:    user.TimesCountedAsKnown,
 			ReviewFrequencyFormula: user.ReviewFrequencyFormula,
