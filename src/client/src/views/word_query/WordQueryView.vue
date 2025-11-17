@@ -246,7 +246,7 @@ const handleKeydown = (event) => {
   } else if ('0123456789'.includes(event.key)) {
     let number = +event.key;
     if (number === 0) number = 10;
-    if (number <= dictionaries.value.length && showResults.value) {
+    if (number <= dictionaries.value.length && showResults.value && showSearchDrawer.value) {
       const dictionary = dictionaries.value[number - 1];
       window.open(dictionary.prefix + (currentVocabulary.value || '') + (dictionary.suffix || ''), '_blank');
     }
