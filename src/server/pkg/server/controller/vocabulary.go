@@ -190,7 +190,7 @@ func CountVocabulary(c *gin.Context) {
 }
 
 func ListVocabulary(c *gin.Context) {
-	vocabularySetID, err := strconv.Atoi(c.Query("vocabularySet_id"))
+	vocabularySetID, err := strconv.Atoi(c.Query("vocabulary_set_id"))
 	if err != nil {
 		util.JsonHttpResponse(c, 1, "error", "词条查询失败, 请输入合法的id值")
 	}
