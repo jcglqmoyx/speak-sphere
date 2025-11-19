@@ -153,7 +153,7 @@ onMounted(
       user.username = getUserProfileResponse.username;
       user.email = getUserProfileResponse.email;
       user.avatar = getUserProfileResponse.avatar;
-      user.currentVocabularySetID = getUserProfileResponse.current_vocabularySet_id;
+      user.currentVocabularySetID = getUserProfileResponse.current_vocabulary_set_id;
       user.dailyCount = getUserProfileResponse.daily_count;
       user.timesCountedAsKnown = getUserProfileResponse.times_counted_as_known;
       user.reviewFrequencyFormula = getUserProfileResponse.review_frequency_formula;
