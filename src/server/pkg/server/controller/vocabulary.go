@@ -185,7 +185,7 @@ func GetVocabulariesToReview(c *gin.Context) {
 }
 
 func CountVocabulary(c *gin.Context) {
-	vocabularySetID, _ := strconv.Atoi(c.Param("vocabularySet_id"))
+	vocabularySetID, _ := strconv.Atoi(c.Param("vocabulary_set_id"))
 	util.JsonHttpResponse(c, 0, "success", dao.CountVocabulary(vocabularySetID))
 }
 
@@ -207,7 +207,7 @@ func ListVocabulary(c *gin.Context) {
 
 func CheckVocabularyInVocabularySet(c *gin.Context) {
 	vocabulary := c.Query("vocabulary")
-	vocabularySetID, err := strconv.Atoi(c.Query("vocabularySet_id"))
+	vocabularySetID, err := strconv.Atoi(c.Query("vocabulary_set_id"))
 	if err != nil {
 		util.JsonHttpResponse(c, 1, "词书ID不合法", nil)
 		return
