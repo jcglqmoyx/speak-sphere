@@ -5,14 +5,6 @@ async function updateVocabulary(id, vocabulary, meaning, vocabulary_set_id, note
         const token = localStorage.getItem("token");
         const serverLink = localStorage.getItem("server_link");
         const url = serverLink + '/vocabulary/update'
-        console.log(id,
-            vocabulary,
-            meaning,
-            vocabulary_set_id,
-            note,
-            date_to_review,
-            created_at,)
-        ;
         const response = await axios.put(url, {
             id,
             vocabulary: vocabulary,
