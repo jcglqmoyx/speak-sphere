@@ -132,7 +132,17 @@
 </template>
 
 <script setup>
-import {ElButton, ElDivider, ElDrawer, ElIcon, ElInput, ElTabPane, ElTabs, ElTooltip} from 'element-plus';
+import {
+  ElButton,
+  ElDivider,
+  ElDrawer,
+  ElIcon,
+  ElInput,
+  ElNotification,
+  ElTabPane,
+  ElTabs,
+  ElTooltip
+} from 'element-plus';
 import {ChatDotRound, Close, Delete, EditPen, Search} from "@element-plus/icons-vue";
 import ContentBase from "@/components/ContentBase.vue";
 import LLMQueryPanel from "@/components/LLMQueryPanel.vue";
@@ -435,6 +445,14 @@ const showNextVocabulary = async () => {
 const updateNote = async () => {
   const updateNoteResponse = await updateVocabulary(vocabularies[idx.value].id, vocabularies[idx.value].vocabulary, vocabularies[idx.value].meaning, vocabularies[idx.value].vocabulary_set_id, currentVocabularyNote.value, vocabularies[idx.value].unwanted, vocabularies[idx.value].study_count, vocabularies[idx.value].date_to_review, vocabularies[idx.value].created_at);
   checkResponse(updateNoteResponse);
+  if (updateNoteResponse != null && updateNoteResponse.code === 0) {
+    ElNotification({
+      title: 'Success',
+      message: '更新成功',
+      type: 'success',
+      duration: 1000,
+    });
+  }
 }
 
 // 处理单词内容区域的点击事件 - 用于发音按钮
