@@ -24,7 +24,6 @@ async function getVocabularyCount(vocabularySetId) {
                 Authorization: `Bearer ${token}`, 'Content-Type': 'application/json',
             },
         });
-        console.log('response.data: ', response.data)
         return response.data
     } catch (error) {
         console.error('Error fetching data from backend:', error);
