@@ -1,4 +1,4 @@
-import WordQueryView from "@/views/word_query/WordQueryView.vue";
+import VocabularyQueryView from "@/views/vocabulary_query/VocabularyQueryView.vue";
 import AudioRecorderView from "@/views/audio-recorder/AudioRecorderView.vue";
 
 const ToolRoutes = [
@@ -9,7 +9,7 @@ const ToolRoutes = [
             {
                 path: "query",
                 name: 'query',
-                component: WordQueryView,
+                component: VocabularyQueryView,
             },
             {
                 path: 'record',
