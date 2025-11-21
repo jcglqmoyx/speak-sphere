@@ -408,13 +408,10 @@ const checkAndFetchDefinition = async () => {
 
       if (result.success) {
         currentVocabularyMeaning.value = formatDefinition(result);
-        console.log(`成功查询到单词 "${currentVocabulary.vocabulary}" 的释义`);
       } else {
         currentVocabularyMeaning.value = '暂无释义';
-        console.log(`单词 "${currentVocabulary.vocabulary}" 查询失败:`, result);
       }
     } catch (error) {
-      console.error(`单词 "${currentVocabulary.vocabulary}" 查询异常:`, error);
       currentVocabularyMeaning.value = '暂无释义';
     } finally {
       isFetchingDefinition.value = false;
